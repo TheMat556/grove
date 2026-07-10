@@ -17,6 +17,8 @@ export default defineConfig({
 				"**/.next/**",
 				"**/*.test.ts",
 				"**/*.test.tsx",
+				"**/*.spec.ts",
+				"**/*.spec.tsx",
 			],
 		},
 	},

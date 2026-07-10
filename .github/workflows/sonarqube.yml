@@ -13,7 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Disable shallow clone so Sonar can assign issues to the right authors.
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Setup Bun
