@@ -1,16 +1,19 @@
 import * as Sentry from "@sentry/nextjs";
+import { connection } from "next/server";
 
 class SentryExampleAPIError extends Error {
-  constructor(message: string | undefined) {
-    super(message);
-    this.name = "SentryExampleAPIError";
-  }
+	constructor(message: string | undefined) {
+		super(message);
+		this.name = "SentryExampleAPIError";
+	}
 }
 
 // A faulty API route to test Sentry's error monitoring
-export function GET() {
-  Sentry.logger.info("Sentry example API called");
-  throw new SentryExampleAPIError(
-    "This error is raised on the backend called by the example page.",
-  );
+export async function GET() {
+	// Opt out of prerendering: this route intentionally throws at runtime.
+	await connection();
+	Sentry.logger.info("Sentry example API called");
+	throw new SentryExampleAPIError(
+		"This error is raised on the backend called by the example page.",
+	);
 }
