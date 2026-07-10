@@ -4,13 +4,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
   },
   "dependencies": {
+    "@base-ui/react": "^1.6.0",
     "@radix-ui/react-checkbox": "^1.3.1",
     "@radix-ui/react-dropdown-menu": "^2.1.14",
     "@radix-ui/react-label": "^2.1.6",
     "@radix-ui/react-slot": "^1.2.2",
+    "@sentry/nextjs": "10",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "class-variance-authority": "^0.7.1",
@@ -20,19 +26,31 @@
     "next-themes": "^0.4.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwind-merge": "^3.3.0"
+    "shadcn": "^4.13.0",
+    "tailwind-merge": "^3.3.0",
+    "tw-animate-css": "^1.4.0",
+    "zod": "^4.4.3",
+    "zustand": "^5.0.14"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.3",
     "autoprefixer": "^10.4.20",
+    "cypress": "^15.18.1",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.8",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.10"
   }
 }
