@@ -10,6 +10,6 @@ export const profilSchema = z.object({
 	erstellt_am: z.string().datetime()
 });
 
-export const profilInsertSchema = profilSchema.omit({ id: true });
+export const profilInsertSchema = profilSchema.omit({ id: true, erstellt_am: true });
 export type Profil = z.infer<typeof profilSchema>;
 export type ProfilInsert = z.infer<typeof profilInsertSchema>;
