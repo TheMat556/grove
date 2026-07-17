@@ -57,5 +57,5 @@ export async function createVerkaufMitPositionen(
 		throw new Error(`Verkauf konnte nicht angelegt werden: ${error.message}`);
 	}
 
-	return data as unknown as Tables<"tb_verkauf">;
+	return data;
 }

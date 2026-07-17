@@ -1,9 +1,15 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createTestClient } from "@/lib/supabase/test";
+import { createTestCrud, getClient } from "./test-utils";
 import { createTestProfil, deleteTestAuthUser } from "./test-utils";
+import { profilInsertSchema } from "@/lib/schemas/profil";
 
-const supabase = createTestClient();
+const crud = createTestCrud({
+	table: "tb_profil",
+	insertSchema: profilInsertSchema,
+	labels: { singular: "Profil", plural: "Profile" },
+});
+
 const created: string[] = [];
 
 let profilId1: string;
@@ -34,7 +40,7 @@ async function createProfilFixture(
 ) {
 	const profilIds = getProfilIds();
 	const id = profilIds[profilIdx++ % profilIds.length];
-	const { data, error } = await supabase
+	const { data, error } = await getClient()
 		.from("tb_profil")
 		.upsert({
 			id,
@@ -67,32 +73,22 @@ describe.skipIf(!hasSupabase)("tb_profil CRUD", () => {
 
 	it("reads all profile", async () => {
 		const created = await createProfilFixture();
-		const { data, error } = await supabase.from("tb_profil").select("*");
+		const all = await crud.getAll();
 
-		expect(error).toBeNull();
-		expect(data?.some((p) => p.id === created.id)).toBe(true);
+		expect(all.some((p) => p.id === created.id)).toBe(true);
 	});
 
 	it("updates profil name", async () => {
 		const profil = await createProfilFixture();
-		const { data, error } = await supabase
-			.from("tb_profil")
-			.update({ name: `updated-${Math.random().toString(36).slice(2, 8)}` })
-			.eq("id", profil.id)
-			.select()
-			.single();
+		const updated = await crud.update(profil.id, {
+			name: `updated-${Math.random().toString(36).slice(2, 8)}`,
+		});
 
-		expect(error).toBeNull();
-		expect(data?.name).not.toBe(profil.name);
+		expect(updated.name).not.toBe(profil.name);
 	});
 
 	it("deletes profil", async () => {
 		const profil = await createProfilFixture();
-		const { error } = await supabase
-			.from("tb_profil")
-			.delete()
-			.eq("id", profil.id);
-
-		expect(error).toBeNull();
+		await crud.remove(profil.id);
 	});
 });

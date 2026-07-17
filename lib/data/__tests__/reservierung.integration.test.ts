@@ -1,13 +1,47 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createTestClient } from "@/lib/supabase/test";
-import { createTestProfil, deleteTestAuthUser } from "./test-utils";
+import { createTestCrud, getClient, createTestProfil, deleteTestAuthUser } from "./test-utils";
+import { saisonInsertSchema } from "@/lib/schemas/saison";
+import { standortInsertSchema } from "@/lib/schemas/standort";
+import { standInsertSchema } from "@/lib/schemas/stand";
+import { kundeInsertSchema } from "@/lib/schemas/kunde";
+import { reservierungInsertSchema } from "@/lib/schemas/reservierung";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
 }
 
-const supabase = createTestClient();
+const crudSaison = createTestCrud({
+	table: "tb_saison",
+	insertSchema: saisonInsertSchema,
+	labels: { singular: "Saison", plural: "Saisons" },
+	orderBy: { column: "start_datum" },
+});
+
+const crudStandort = createTestCrud({
+	table: "tb_standort",
+	insertSchema: standortInsertSchema,
+	labels: { singular: "Standort", plural: "Standorte" },
+});
+
+const crudStand = createTestCrud({
+	table: "tb_stand",
+	insertSchema: standInsertSchema,
+	labels: { singular: "Stand", plural: "Stände" },
+});
+
+const crudKunde = createTestCrud({
+	table: "tb_kunde",
+	insertSchema: kundeInsertSchema,
+	labels: { singular: "Kunde", plural: "Kunden" },
+});
+
+const crudReservierung = createTestCrud({
+	table: "tb_reservierung",
+	insertSchema: reservierungInsertSchema,
+	labels: { singular: "Reservierung", plural: "Reservierungen" },
+});
+
 const createdReservierungIds: string[] = [];
 const createdSaisonIds: string[] = [];
 const createdStandortIds: string[] = [];
@@ -25,22 +59,22 @@ beforeAll(async () => {
 
 afterAll(async () => {
 	if (createdReservierungIds.length > 0) {
-		await supabase
+		await getClient()
 			.from("tb_reservierung")
 			.delete()
 			.in("id", createdReservierungIds);
 	}
 	if (createdStandIds.length > 0) {
-		await supabase.from("tb_stand").delete().in("id", createdStandIds);
+		await getClient().from("tb_stand").delete().in("id", createdStandIds);
 	}
 	if (createdStandortIds.length > 0) {
-		await supabase.from("tb_standort").delete().in("id", createdStandortIds);
+		await getClient().from("tb_standort").delete().in("id", createdStandortIds);
 	}
 	if (createdKundeIds.length > 0) {
-		await supabase.from("tb_kunde").delete().in("id", createdKundeIds);
+		await getClient().from("tb_kunde").delete().in("id", createdKundeIds);
 	}
 	if (createdSaisonIds.length > 0) {
-		await supabase.from("tb_saison").delete().in("id", createdSaisonIds);
+		await getClient().from("tb_saison").delete().in("id", createdSaisonIds);
 	}
 	for (const id of createdAuthUserIds) {
 		await deleteTestAuthUser(id);
@@ -48,74 +82,50 @@ afterAll(async () => {
 });
 
 async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
-	const { data, error } = await supabase
-		.from("tb_saison")
-		.insert({
-			name: `test-${uid()}`,
-			start_datum: "2026-01-01",
-			end_datum: "2026-12-31",
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdSaisonIds.push(data.id);
-	return data;
+	const saison = await crudSaison.create({
+		name: `test-${uid()}`,
+		start_datum: "2026-01-01",
+		end_datum: "2026-12-31",
+		...overrides,
+	});
+	createdSaisonIds.push(saison.id);
+	return saison;
 }
 
 async function createStandort(
 	overrides: Partial<Record<string, unknown>> = {},
 ) {
-	const { data, error } = await supabase
-		.from("tb_standort")
-		.insert({
-			ort: `test-${uid()}`,
-			plz: 12345,
-			adresse: `${uid()}-Straße 1`,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdStandortIds.push(data.id);
-	return data;
+	const standort = await crudStandort.create({
+		ort: `test-${uid()}`,
+		plz: 12345,
+		adresse: `${uid()}-Straße 1`,
+		...overrides,
+	});
+	createdStandortIds.push(standort.id);
+	return standort;
 }
 
 async function createStand(overrides: Partial<Record<string, unknown>> = {}) {
 	const standort = await createStandort();
-	const { data, error } = await supabase
-		.from("tb_stand")
-		.insert({
-			bezeichnung: `test-${uid()}`,
-			standort_id: standort.id,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdStandIds.push(data.id);
-	return data;
+	const stand = await crudStand.create({
+		bezeichnung: `test-${uid()}`,
+		standort_id: standort.id,
+		...overrides,
+	});
+	createdStandIds.push(stand.id);
+	return stand;
 }
 
 async function createKunde(overrides: Partial<Record<string, unknown>> = {}) {
-	const { data, error } = await supabase
-		.from("tb_kunde")
-		.insert({
-			name: `test-${uid()}`,
-			telefon: `+49-${uid()}`,
-			adresse: `${uid()}-Straße 1`,
-			ist_firma: false,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdKundeIds.push(data.id);
-	return data;
+	const kunde = await crudKunde.create({
+		name: `test-${uid()}`,
+		telefon: `+49-${uid()}`,
+		adresse: `${uid()}-Straße 1`,
+		ist_firma: false,
+		...overrides,
+	});
+	createdKundeIds.push(kunde.id);
+	return kunde;
 }
 
 async function createProfil() {
@@ -130,23 +140,17 @@ async function createReservierung(
 	const kunde = await createKunde();
 	const profil = await createProfil();
 
-	const { data, error } = await supabase
-		.from("tb_reservierung")
-		.insert({
-			saison_id: saison.id,
-			stand_id: stand.id,
-			kunde_id: kunde.id,
-			profil_id: profil.id,
-			versandart: "abholung",
-			geplantes_datum: "2026-06-15",
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdReservierungIds.push(data.id);
-	return data;
+	const r = await crudReservierung.create({
+		saison_id: saison.id,
+		stand_id: stand.id,
+		kunde_id: kunde.id,
+		profil_id: profil.id,
+		versandart: "abholung",
+		geplantes_datum: "2026-06-15",
+		...overrides,
+	});
+	createdReservierungIds.push(r.id);
+	return r;
 }
 
 const hasSupabase = !!process.env.SUPABASE_TEST_URL;
@@ -165,33 +169,21 @@ describe.skipIf(!hasSupabase)("tb_reservierung CRUD", () => {
 
 	it("reads all reservierungen", async () => {
 		const created = await createReservierung();
-		const { data, error } = await supabase.from("tb_reservierung").select("*");
+		const all = await crudReservierung.getAll();
 
-		expect(error).toBeNull();
-		expect(data?.some((r) => r.id === created.id)).toBe(true);
+		expect(all.some((r) => r.id === created.id)).toBe(true);
 	});
 
 	it("updates reservierung versandart", async () => {
 		const r = await createReservierung();
-		const { data, error } = await supabase
-			.from("tb_reservierung")
-			.update({ versandart: "lieferung" })
-			.eq("id", r.id)
-			.select()
-			.single();
+		const updated = await crudReservierung.update(r.id, { versandart: "lieferung" });
 
-		expect(error).toBeNull();
-		expect(data?.versandart).toBe("lieferung");
+		expect(updated.versandart).toBe("lieferung");
 	});
 
 	it("deletes reservierung", async () => {
 		const r = await createReservierung();
-		const { error } = await supabase
-			.from("tb_reservierung")
-			.delete()
-			.eq("id", r.id);
-
-		expect(error).toBeNull();
+		await crudReservierung.remove(r.id);
 	});
 });
 
@@ -202,42 +194,29 @@ describe.skipIf(!hasSupabase)("tb_reservierung by saison", () => {
 		const kunde = await createKunde();
 		const profil = await createProfil();
 
-		const { data: r1 } = await supabase
-			.from("tb_reservierung")
-			.insert({
-				saison_id: saison.id,
-				stand_id: stand.id,
-				kunde_id: kunde.id,
-				profil_id: profil.id,
-				versandart: "abholung",
-				geplantes_datum: "2026-07-01",
-			})
-			.select()
-			.single();
+		const r1 = await crudReservierung.create({
+			saison_id: saison.id,
+			stand_id: stand.id,
+			kunde_id: kunde.id,
+			profil_id: profil.id,
+			versandart: "abholung",
+			geplantes_datum: "2026-07-01",
+		});
+		createdReservierungIds.push(r1.id);
 
-		const { data: r2 } = await supabase
-			.from("tb_reservierung")
-			.insert({
-				saison_id: saison.id,
-				stand_id: stand.id,
-				kunde_id: kunde.id,
-				profil_id: profil.id,
-				versandart: "lieferung",
-				geplantes_datum: "2026-07-15",
-			})
-			.select()
-			.single();
+		const r2 = await crudReservierung.create({
+			saison_id: saison.id,
+			stand_id: stand.id,
+			kunde_id: kunde.id,
+			profil_id: profil.id,
+			versandart: "lieferung",
+			geplantes_datum: "2026-07-15",
+		});
+		createdReservierungIds.push(r2.id);
 
-		if (r1) createdReservierungIds.push(r1.id);
-		if (r2) createdReservierungIds.push(r2.id);
+		const data = await crudReservierung.getBySaisonId(saison.id);
 
-		const { data, error } = await supabase
-			.from("tb_reservierung")
-			.select("*")
-			.eq("saison_id", saison.id);
-
-		expect(error).toBeNull();
 		expect(data).toHaveLength(2);
-		expect(data?.map((r) => r.id).sort()).toEqual([r1?.id, r2?.id].sort());
+		expect(data.map((r) => r.id).sort()).toEqual([r1.id, r2.id].sort());
 	});
 });

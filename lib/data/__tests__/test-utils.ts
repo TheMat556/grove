@@ -1,27 +1,40 @@
 // @vitest-environment node
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createTestClient } from "@/lib/supabase/test";
+import { createCrud } from "@/lib/data/crud";
+import type { CrudConfig } from "@/lib/data/crud";
+import type { Database } from "@/lib/supabase/database.types";
+type TableName = keyof Database["public"]["Tables"];
 
 const supabase =
 	process.env.SUPABASE_TEST_URL && process.env.SUPABASE_TEST_SERVICE_KEY
 		? createTestClient()
 		: null;
 
+export function getClient(): SupabaseClient<Database> {
+	if (!supabase)
+		throw new Error("SUPABASE_TEST_URL / SUPABASE_TEST_SERVICE_KEY not set");
+	return supabase;
+}
+
+/**
+ * Erzeugt eine testbare CRUD-Instanz, die den Test-Supabase-Client
+ * verwendet statt des Server-Clients (der in Tests nicht funktioniert).
+ */
+export function createTestCrud<T extends TableName>(
+	config: Omit<CrudConfig<T>, "createClient">,
+) {
+	return createCrud<T>({
+		...config,
+		createClient: async () => getClient() as unknown as SupabaseClient,
+	});
+}
+
 let uidCounter = 0;
 
 function uniqueEmail(): string {
 	uidCounter++;
 	return `test-${Date.now()}-${uidCounter}@test.test`;
-}
-
-/**
- * Creates a real auth user in Supabase Auth, then creates a matching tb_profil entry.
- * Returns the profil record.
- * On failure, cleans up the auth user automatically.
- */
-function getClient() {
-	if (!supabase)
-		throw new Error("SUPABASE_TEST_URL / SUPABASE_TEST_SERVICE_KEY not set");
-	return supabase;
 }
 
 export async function createTestProfil(

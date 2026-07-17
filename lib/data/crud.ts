@@ -25,7 +25,9 @@ type CrudApi<T extends TableName> = {
 	? { getBySaisonId: (saisonId: string) => Promise<Row<T>[]> }
 	: Record<never, never>);
 
-type CrudConfig<T extends TableName> = {
+type ClientFactory = () => Promise<SupabaseClient>;
+
+export type CrudConfig<T extends TableName> = {
 	/** Tabellenname, z. B. "tb_saison". */
 	table: T;
 	/**
@@ -45,6 +47,8 @@ type CrudConfig<T extends TableName> = {
 	labels: { singular: string; plural: string };
 	/** Optionale Standard-Sortierung für getAll(). */
 	orderBy?: { column: keyof Row<T> & string; ascending?: boolean };
+	/** Supabase-Client-Factory (default: @/lib/supabase/server createClient). */
+	createClient?: ClientFactory;
 };
 
 /**
@@ -63,8 +67,9 @@ export function createCrud<T extends TableName>(config: CrudConfig<T>) {
 	const { table, insertSchema, createSchema, labels, orderBy } = config;
 
 	// Untypisierter Basis-Client – Escape-Hatch für den generischen Tabellennamen.
+	const clientFactory = config.createClient ?? createClient;
 	const client = async () =>
-		(await createClient()) as unknown as SupabaseClient;
+		(await clientFactory()) as unknown as SupabaseClient;
 
 	const getAll = cache(async (): Promise<Row<T>[]> => {
 		const supabase = await client();

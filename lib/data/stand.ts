@@ -10,7 +10,7 @@ const crud = createCrud({
 	orderBy: { column: "bezeichnung" },
 });
 
-export const getStände = crud.getAll;
+export const getStaende = crud.getAll;
 export const getStand = crud.getById;
 export const createStand = crud.create;
 export const updateStand = crud.update;

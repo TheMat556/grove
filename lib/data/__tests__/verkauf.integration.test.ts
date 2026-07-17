@@ -1,19 +1,41 @@
 // @vitest-environment node
 
-import { createClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import type { Database } from "@/lib/supabase/database.types";
-import { createTestProfil, deleteTestAuthUser } from "./test-utils";
+import { createTestCrud, getClient, createTestProfil, deleteTestAuthUser } from "./test-utils";
+import { saisonInsertSchema } from "@/lib/schemas/saison";
+import { standortInsertSchema } from "@/lib/schemas/standort";
+import { standInsertSchema } from "@/lib/schemas/stand";
+import { produktInsertSchema } from "@/lib/schemas/produkt";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
 }
 
-// Use service-role for test setup (bypasses auth)
-const supabase = createClient<Database>(
-	process.env.SUPABASE_TEST_URL!,
-	process.env.SUPABASE_TEST_SERVICE_KEY!,
-);
+// Lazy-init supabase for the raw afterAll cleanup
+const crudSaison = createTestCrud({
+	table: "tb_saison",
+	insertSchema: saisonInsertSchema,
+	labels: { singular: "Saison", plural: "Saisons" },
+	orderBy: { column: "start_datum" },
+});
+
+const crudStandort = createTestCrud({
+	table: "tb_standort",
+	insertSchema: standortInsertSchema,
+	labels: { singular: "Standort", plural: "Standorte" },
+});
+
+const crudStand = createTestCrud({
+	table: "tb_stand",
+	insertSchema: standInsertSchema,
+	labels: { singular: "Stand", plural: "Stände" },
+});
+
+const crudProdukt = createTestCrud({
+	table: "tb_produkt",
+	insertSchema: produktInsertSchema,
+	labels: { singular: "Produkt", plural: "Produkte" },
+});
 
 const createdIds: Record<string, string[]> = {
 	tb_profil: [],
@@ -59,7 +81,7 @@ afterAll(async () => {
 	for (const table of cleanupOrder) {
 		const ids = createdIds[table];
 		if (ids.length > 0) {
-			await supabase.from(table).delete().in("id", ids);
+			await getClient().from(table).delete().in("id", ids);
 		}
 	}
 	for (const id of createdAuthUserIds) {
@@ -68,71 +90,43 @@ afterAll(async () => {
 });
 
 async function createSaison() {
-	const { data } = await supabase
-		.from("tb_saison")
-		.insert({
-			name: `test-${uid()}`,
-			start_datum: "2026-01-01",
-			end_datum: "2026-12-31",
-		})
-		.select()
-		.single()
-		.then((r) => {
-			createdIds.tb_saison.push(r.data!.id);
-			return r;
-		});
-	return data!;
+	const data = await crudSaison.create({
+		name: `test-${uid()}`,
+		start_datum: "2026-01-01",
+		end_datum: "2026-12-31",
+	});
+	createdIds.tb_saison.push(data.id);
+	return data;
 }
 
 async function createStandort() {
-	const { data } = await supabase
-		.from("tb_standort")
-		.insert({
-			plz: 12345,
-			ort: `Testort-${uid()}`,
-			adresse: "Teststr. 1",
-		})
-		.select()
-		.single()
-		.then((r) => {
-			createdIds.tb_standort.push(r.data!.id);
-			return r;
-		});
-	return data!;
+	const data = await crudStandort.create({
+		plz: 12345,
+		ort: `Testort-${uid()}`,
+		adresse: "Teststr. 1",
+	});
+	createdIds.tb_standort.push(data.id);
+	return data;
 }
 
 async function createStand(standortId: string) {
-	const { data } = await supabase
-		.from("tb_stand")
-		.insert({
-			standort_id: standortId,
-			bezeichnung: `test-${uid()}`,
-		})
-		.select()
-		.single()
-		.then((r) => {
-			createdIds.tb_stand.push(r.data!.id);
-			return r;
-		});
-	return data!;
+	const data = await crudStand.create({
+		standort_id: standortId,
+		bezeichnung: `test-${uid()}`,
+	});
+	createdIds.tb_stand.push(data.id);
+	return data;
 }
 
 async function createProdukt() {
-	const { data } = await supabase
-		.from("tb_produkt")
-		.insert({
-			art: "Baum",
-			bezeichnung: `test-${uid()}`,
-			von_cm: 100,
-			bis_cm: 150,
-		})
-		.select()
-		.single()
-		.then((r) => {
-			createdIds.tb_produkt.push(r.data!.id);
-			return r;
-		});
-	return data!;
+	const data = await crudProdukt.create({
+		art: "Baum",
+		bezeichnung: `test-${uid()}`,
+		von_cm: 100,
+		bis_cm: 150,
+	});
+	createdIds.tb_produkt.push(data.id);
+	return data;
 }
 
 async function createProfil() {
@@ -149,7 +143,7 @@ describe.skipIf(!hasSupabase)("tb_verkauf RPC", () => {
 		const produkt = await createProdukt();
 		const profil = await createProfil();
 
-		const { data, error } = await supabase.rpc(
+		const { data, error } = await getClient().rpc(
 			"create_verkauf_mit_positionen",
 			{
 				p_verkauf: {
@@ -183,7 +177,7 @@ describe.skipIf(!hasSupabase)("tb_verkauf RPC", () => {
 		expect(data).not.toBeNull();
 
 		// Verify header exists
-		const { data: header } = await supabase
+		const { data: header } = await getClient()
 			.from("tb_verkauf")
 			.select("*")
 			.eq("id", data!.id)
@@ -191,7 +185,7 @@ describe.skipIf(!hasSupabase)("tb_verkauf RPC", () => {
 		expect(header?.preis_gesamt).toBe(45.0);
 
 		// Verify 2 positions created
-		const { data: pos } = await supabase
+		const { data: pos } = await getClient()
 			.from("tb_position")
 			.select("*")
 			.eq("verkauf_id", data!.id);
@@ -211,7 +205,7 @@ describe.skipIf(!hasSupabase)("tb_verkauf RPC", () => {
 		const produkt = await createProdukt();
 		const profil = await createProfil();
 
-		const { data, error } = await supabase.rpc(
+		const { data, error } = await getClient().rpc(
 			"create_verkauf_mit_positionen",
 			{
 				p_verkauf: {
@@ -238,7 +232,7 @@ describe.skipIf(!hasSupabase)("tb_verkauf RPC", () => {
 
 		// Verify the header insert was rolled back (atomicity). saison.id is unique
 		// to this test, so no tb_verkauf row should reference it.
-		const { data: headers } = await supabase
+		const { data: headers } = await getClient()
 			.from("tb_verkauf")
 			.select("id")
 			.eq("saison_id", saison.id);

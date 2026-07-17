@@ -16,7 +16,6 @@ export const verkaufSchema = z.object({
 export const verkaufInsertSchema = verkaufSchema.omit({
 	id: true,
 	verkauft_am: true,
-	reservierung_id: true /* TODO: OPEN wird im gleichen Screen erstellt*/,
 });
 
 export type Verkauf = z.infer<typeof verkaufSchema>;

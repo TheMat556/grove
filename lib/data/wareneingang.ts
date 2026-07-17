@@ -62,5 +62,5 @@ export async function createWareneingangMitPositionen(
 		);
 	}
 
-	return data as unknown as Tables<"tb_wareneingang">;
+	return data;
 }

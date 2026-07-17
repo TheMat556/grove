@@ -1,13 +1,47 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createTestClient } from "@/lib/supabase/test";
-import { createTestProfil, deleteTestAuthUser } from "./test-utils";
+import { createTestCrud, getClient, createTestProfil, deleteTestAuthUser } from "./test-utils";
+import { saisonInsertSchema } from "@/lib/schemas/saison";
+import { standortInsertSchema } from "@/lib/schemas/standort";
+import { standInsertSchema } from "@/lib/schemas/stand";
+import { produktInsertSchema } from "@/lib/schemas/produkt";
+import { wareneingangInsertSchema } from "@/lib/schemas/wareneingang";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
 }
 
-const supabase = createTestClient();
+const crudSaison = createTestCrud({
+	table: "tb_saison",
+	insertSchema: saisonInsertSchema,
+	labels: { singular: "Saison", plural: "Saisons" },
+	orderBy: { column: "start_datum" },
+});
+
+const crudStandort = createTestCrud({
+	table: "tb_standort",
+	insertSchema: standortInsertSchema,
+	labels: { singular: "Standort", plural: "Standorte" },
+});
+
+const crudStand = createTestCrud({
+	table: "tb_stand",
+	insertSchema: standInsertSchema,
+	labels: { singular: "Stand", plural: "Stände" },
+});
+
+const crudProdukt = createTestCrud({
+	table: "tb_produkt",
+	insertSchema: produktInsertSchema,
+	labels: { singular: "Produkt", plural: "Produkte" },
+});
+
+const crudWareneingang = createTestCrud({
+	table: "tb_wareneingang",
+	insertSchema: wareneingangInsertSchema,
+	labels: { singular: "Wareneingang", plural: "Wareneingaenge" },
+});
+
 const createdWareneingangIds: string[] = [];
 const createdWareneingangspositionIds: string[] = [];
 const createdSaisonIds: string[] = [];
@@ -26,28 +60,28 @@ beforeAll(async () => {
 
 afterAll(async () => {
 	if (createdWareneingangspositionIds.length > 0) {
-		await supabase
+		await getClient()
 			.from("tb_wareneingangsposition")
 			.delete()
 			.in("id", createdWareneingangspositionIds);
 	}
 	if (createdWareneingangIds.length > 0) {
-		await supabase
+		await getClient()
 			.from("tb_wareneingang")
 			.delete()
 			.in("id", createdWareneingangIds);
 	}
 	if (createdStandIds.length > 0) {
-		await supabase.from("tb_stand").delete().in("id", createdStandIds);
+		await getClient().from("tb_stand").delete().in("id", createdStandIds);
 	}
 	if (createdStandortIds.length > 0) {
-		await supabase.from("tb_standort").delete().in("id", createdStandortIds);
+		await getClient().from("tb_standort").delete().in("id", createdStandortIds);
 	}
 	if (createdProduktIds.length > 0) {
-		await supabase.from("tb_produkt").delete().in("id", createdProduktIds);
+		await getClient().from("tb_produkt").delete().in("id", createdProduktIds);
 	}
 	if (createdSaisonIds.length > 0) {
-		await supabase.from("tb_saison").delete().in("id", createdSaisonIds);
+		await getClient().from("tb_saison").delete().in("id", createdSaisonIds);
 	}
 	for (const id of createdAuthUserIds) {
 		await deleteTestAuthUser(id);
@@ -55,74 +89,50 @@ afterAll(async () => {
 });
 
 async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
-	const { data, error } = await supabase
-		.from("tb_saison")
-		.insert({
-			name: `test-${uid()}`,
-			start_datum: "2026-01-01",
-			end_datum: "2026-12-31",
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdSaisonIds.push(data.id);
-	return data;
+	const saison = await crudSaison.create({
+		name: `test-${uid()}`,
+		start_datum: "2026-01-01",
+		end_datum: "2026-12-31",
+		...overrides,
+	});
+	createdSaisonIds.push(saison.id);
+	return saison;
 }
 
 async function createStandort(
 	overrides: Partial<Record<string, unknown>> = {},
 ) {
-	const { data, error } = await supabase
-		.from("tb_standort")
-		.insert({
-			ort: `test-${uid()}`,
-			plz: 12345,
-			adresse: `${uid()}-Straße 1`,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdStandortIds.push(data.id);
-	return data;
+	const standort = await crudStandort.create({
+		ort: `test-${uid()}`,
+		plz: 12345,
+		adresse: `${uid()}-Straße 1`,
+		...overrides,
+	});
+	createdStandortIds.push(standort.id);
+	return standort;
 }
 
 async function createStand(overrides: Partial<Record<string, unknown>> = {}) {
 	const standort = await createStandort();
-	const { data, error } = await supabase
-		.from("tb_stand")
-		.insert({
-			bezeichnung: `test-${uid()}`,
-			standort_id: standort.id,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdStandIds.push(data.id);
-	return data;
+	const stand = await crudStand.create({
+		bezeichnung: `test-${uid()}`,
+		standort_id: standort.id,
+		...overrides,
+	});
+	createdStandIds.push(stand.id);
+	return stand;
 }
 
 async function createProdukt(overrides: Partial<Record<string, unknown>> = {}) {
-	const { data, error } = await supabase
-		.from("tb_produkt")
-		.insert({
-			bezeichnung: `test-${uid()}`,
-			art: "Baum",
-			von_cm: 0,
-			bis_cm: 100,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdProduktIds.push(data.id);
-	return data;
+	const produkt = await crudProdukt.create({
+		bezeichnung: `test-${uid()}`,
+		art: "Baum",
+		von_cm: 0,
+		bis_cm: 100,
+		...overrides,
+	});
+	createdProduktIds.push(produkt.id);
+	return produkt;
 }
 
 async function createProfil() {
@@ -136,21 +146,15 @@ async function createWareneingang(
 	const stand = await createStand();
 	const profil = await createProfil();
 
-	const { data, error } = await supabase
-		.from("tb_wareneingang")
-		.insert({
-			saison_id: saison.id,
-			stand_id: stand.id,
-			erfasst_von: profil.id,
-			datum: "2026-06-15",
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdWareneingangIds.push(data.id);
-	return data;
+	const we = await crudWareneingang.create({
+		saison_id: saison.id,
+		stand_id: stand.id,
+		erfasst_von: profil.id,
+		datum: "2026-06-15",
+		...overrides,
+	});
+	createdWareneingangIds.push(we.id);
+	return we;
 }
 
 const hasSupabase = !!process.env.SUPABASE_TEST_URL;
@@ -171,33 +175,21 @@ describe.skipIf(!hasSupabase)("tb_wareneingang CRUD", () => {
 
 	it("reads all wareneingaenge", async () => {
 		const created = await createWareneingang();
-		const { data, error } = await supabase.from("tb_wareneingang").select("*");
+		const all = await crudWareneingang.getAll();
 
-		expect(error).toBeNull();
-		expect(data?.some((r) => r.id === created.id)).toBe(true);
+		expect(all.some((r) => r.id === created.id)).toBe(true);
 	});
 
 	it("updates wareneingang datum", async () => {
 		const we = await createWareneingang();
-		const { data, error } = await supabase
-			.from("tb_wareneingang")
-			.update({ datum: "2026-08-01" })
-			.eq("id", we.id)
-			.select()
-			.single();
+		const updated = await crudWareneingang.update(we.id, { datum: "2026-08-01" });
 
-		expect(error).toBeNull();
-		expect(data?.datum).toBe("2026-08-01");
+		expect(updated.datum).toBe("2026-08-01");
 	});
 
 	it("deletes wareneingang", async () => {
 		const we = await createWareneingang();
-		const { error } = await supabase
-			.from("tb_wareneingang")
-			.delete()
-			.eq("id", we.id);
-
-		expect(error).toBeNull();
+		await crudWareneingang.remove(we.id);
 	});
 });
 
@@ -207,39 +199,26 @@ describe.skipIf(!hasSupabase)("tb_wareneingang by saison", () => {
 		const stand = await createStand();
 		const profil = await createProfil();
 
-		const { data: w1 } = await supabase
-			.from("tb_wareneingang")
-			.insert({
-				saison_id: saison.id,
-				stand_id: stand.id,
-				erfasst_von: profil.id,
-				datum: "2026-06-15",
-			})
-			.select()
-			.single();
+		const w1 = await crudWareneingang.create({
+			saison_id: saison.id,
+			stand_id: stand.id,
+			erfasst_von: profil.id,
+			datum: "2026-06-15",
+		});
+		createdWareneingangIds.push(w1.id);
 
-		const { data: w2 } = await supabase
-			.from("tb_wareneingang")
-			.insert({
-				saison_id: saison.id,
-				stand_id: stand.id,
-				erfasst_von: profil.id,
-				datum: "2026-07-01",
-			})
-			.select()
-			.single();
+		const w2 = await crudWareneingang.create({
+			saison_id: saison.id,
+			stand_id: stand.id,
+			erfasst_von: profil.id,
+			datum: "2026-07-01",
+		});
+		createdWareneingangIds.push(w2.id);
 
-		if (w1) createdWareneingangIds.push(w1.id);
-		if (w2) createdWareneingangIds.push(w2.id);
+		const data = await crudWareneingang.getBySaisonId(saison.id);
 
-		const { data, error } = await supabase
-			.from("tb_wareneingang")
-			.select("*")
-			.eq("saison_id", saison.id);
-
-		expect(error).toBeNull();
 		expect(data).toHaveLength(2);
-		expect(data?.map((r) => r.id).sort()).toEqual([w1?.id, w2?.id].sort());
+		expect(data.map((r) => r.id).sort()).toEqual([w1.id, w2.id].sort());
 	});
 });
 
@@ -250,7 +229,7 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 		const produkt = await createProdukt();
 		const profil = await createProfil();
 
-		const { data, error } = await supabase.rpc(
+		const { data, error } = await getClient().rpc(
 			"create_wareneingang_mit_positionen",
 			{
 				p_wareneingang: {
@@ -276,7 +255,7 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 		expect(data).not.toBeNull();
 
 		// Verify header exists
-		const { data: header } = await supabase
+		const { data: header } = await getClient()
 			.from("tb_wareneingang")
 			.select("*")
 			.eq("id", data!.id)
@@ -285,7 +264,7 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 		expect(header?.datum).toBe("2026-06-15");
 
 		// Verify 2 positions created
-		const { data: pos } = await supabase
+		const { data: pos } = await getClient()
 			.from("tb_wareneingangsposition")
 			.select("*")
 			.eq("wareneingang_id", data!.id);
@@ -305,7 +284,7 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 		const produkt = await createProdukt();
 		const profil = await createProfil();
 
-		const { data, error } = await supabase.rpc(
+		const { data, error } = await getClient().rpc(
 			"create_wareneingang_mit_positionen",
 			{
 				p_wareneingang: {
@@ -329,7 +308,7 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 
 		// Verify the header insert was rolled back (atomicity). saison.id is unique
 		// to this test, so no tb_wareneingang row should reference it.
-		const { data: headers } = await supabase
+		const { data: headers } = await getClient()
 			.from("tb_wareneingang")
 			.select("id")
 			.eq("saison_id", saison.id);

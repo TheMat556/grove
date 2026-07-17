@@ -1,12 +1,33 @@
 // @vitest-environment node
 import { afterAll, describe, expect, it } from "vitest";
-import { createTestClient } from "@/lib/supabase/test";
+import { createTestCrud, getClient } from "./test-utils";
+import { standortInsertSchema } from "@/lib/schemas/standort";
+import { standInsertSchema } from "@/lib/schemas/stand";
+import { saisonInsertSchema } from "@/lib/schemas/saison";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
 }
 
-const supabase = createTestClient();
+const crudStandort = createTestCrud({
+	table: "tb_standort",
+	insertSchema: standortInsertSchema,
+	labels: { singular: "Standort", plural: "Standorte" },
+});
+
+const crudStand = createTestCrud({
+	table: "tb_stand",
+	insertSchema: standInsertSchema,
+	labels: { singular: "Stand", plural: "Stände" },
+});
+
+const crudSaison = createTestCrud({
+	table: "tb_saison",
+	insertSchema: saisonInsertSchema,
+	labels: { singular: "Saison", plural: "Saisons" },
+	orderBy: { column: "start_datum" },
+});
+
 const createdIds: { stand_id: string; saison_id: string }[] = [];
 const createdStandortIds: string[] = [];
 const createdStandIds: string[] = [];
@@ -15,10 +36,8 @@ const createdSaisonIds: string[] = [];
 afterAll(async () => {
 	if (createdIds.length > 0) {
 		// Delete junction rows first (FK constraint)
-		const _standIds = createdIds.map((r) => r.stand_id);
-		const _saisonIds = createdIds.map((r) => r.saison_id);
 		for (let i = 0; i < createdIds.length; i++) {
-			await supabase
+			await getClient()
 				.from("tb_stand_saison")
 				.delete()
 				.eq("stand_id", createdIds[i].stand_id)
@@ -26,67 +45,49 @@ afterAll(async () => {
 		}
 	}
 	if (createdStandIds.length > 0) {
-		await supabase.from("tb_stand").delete().in("id", createdStandIds);
+		await getClient().from("tb_stand").delete().in("id", createdStandIds);
 	}
 	if (createdStandortIds.length > 0) {
-		await supabase.from("tb_standort").delete().in("id", createdStandortIds);
+		await getClient().from("tb_standort").delete().in("id", createdStandortIds);
 	}
 	if (createdSaisonIds.length > 0) {
-		await supabase.from("tb_saison").delete().in("id", createdSaisonIds);
+		await getClient().from("tb_saison").delete().in("id", createdSaisonIds);
 	}
 });
 
 async function createStandort(
 	overrides: Partial<Record<string, unknown>> = {},
 ) {
-	const { data, error } = await supabase
-		.from("tb_standort")
-		.insert({
-			ort: `test-${uid()}`,
-			plz: 12345,
-			adresse: `${uid()}-Straße 1`,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdStandortIds.push(data.id);
-	return data;
+	const standort = await crudStandort.create({
+		ort: `test-${uid()}`,
+		plz: 12345,
+		adresse: `${uid()}-Straße 1`,
+		...overrides,
+	});
+	createdStandortIds.push(standort.id);
+	return standort;
 }
 
 async function createStand(overrides: Partial<Record<string, unknown>> = {}) {
 	const standort = await createStandort();
-	const { data, error } = await supabase
-		.from("tb_stand")
-		.insert({
-			bezeichnung: `test-${uid()}`,
-			standort_id: standort.id,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdStandIds.push(data.id);
-	return data;
+	const stand = await crudStand.create({
+		bezeichnung: `test-${uid()}`,
+		standort_id: standort.id,
+		...overrides,
+	});
+	createdStandIds.push(stand.id);
+	return stand;
 }
 
 async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
-	const { data, error } = await supabase
-		.from("tb_saison")
-		.insert({
-			name: `test-${uid()}`,
-			start_datum: "2026-01-01",
-			end_datum: "2026-12-31",
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	createdSaisonIds.push(data.id);
-	return data;
+	const saison = await crudSaison.create({
+		name: `test-${uid()}`,
+		start_datum: "2026-01-01",
+		end_datum: "2026-12-31",
+		...overrides,
+	});
+	createdSaisonIds.push(saison.id);
+	return saison;
 }
 
 const hasSupabase = !!process.env.SUPABASE_TEST_URL;
@@ -96,7 +97,7 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 		const stand = await createStand();
 		const saison = await createSaison();
 
-		const { data, error } = await supabase
+		const { data, error } = await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand.id, saison_id: saison.id })
 			.select()
@@ -115,10 +116,10 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 		const stand2 = await createStand();
 		const saison = await createSaison();
 
-		await supabase
+		await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand1.id, saison_id: saison.id });
-		await supabase
+		await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand2.id, saison_id: saison.id });
 
@@ -127,7 +128,7 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 			{ stand_id: stand2.id, saison_id: saison.id },
 		);
 
-		const { data, error } = await supabase
+		const { data, error } = await getClient()
 			.from("tb_stand_saison")
 			.select("*")
 			.eq("saison_id", saison.id);
@@ -144,10 +145,10 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 		const saison1 = await createSaison();
 		const saison2 = await createSaison();
 
-		await supabase
+		await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand.id, saison_id: saison1.id });
-		await supabase
+		await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand.id, saison_id: saison2.id });
 
@@ -156,7 +157,7 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 			{ stand_id: stand.id, saison_id: saison2.id },
 		);
 
-		const { data, error } = await supabase
+		const { data, error } = await getClient()
 			.from("tb_stand_saison")
 			.select("*")
 			.eq("stand_id", stand.id);
@@ -172,11 +173,11 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 		const stand = await createStand();
 		const saison = await createSaison();
 
-		await supabase
+		await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand.id, saison_id: saison.id });
 
-		const { error } = await supabase
+		const { error } = await getClient()
 			.from("tb_stand_saison")
 			.delete()
 			.eq("stand_id", stand.id)
@@ -185,7 +186,7 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 		expect(error).toBeNull();
 
 		// Verify deletion
-		const { data } = await supabase
+		const { data } = await getClient()
 			.from("tb_stand_saison")
 			.select("*")
 			.eq("stand_id", stand.id)
@@ -198,13 +199,13 @@ describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 		const stand = await createStand();
 		const saison = await createSaison();
 
-		await supabase
+		await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand.id, saison_id: saison.id });
 
 		createdIds.push({ stand_id: stand.id, saison_id: saison.id });
 
-		const { error } = await supabase
+		const { error } = await getClient()
 			.from("tb_stand_saison")
 			.insert({ stand_id: stand.id, saison_id: saison.id });
 
