@@ -1,4 +1,9 @@
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { getSaisons } from "@/lib/data/saison";
 
 export async function SaisonsList() {
@@ -14,7 +19,11 @@ export async function SaisonsList() {
 	}
 
 	if (saisons.length === 0) {
-		return <p className="text-sm text-muted-foreground">Noch keine Saisons angelegt.</p>;
+		return (
+			<p className="text-sm text-muted-foreground">
+				Noch keine Saisons angelegt.
+			</p>
+		);
 	}
 
 	return (

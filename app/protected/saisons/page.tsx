@@ -9,7 +9,11 @@ export default function SaisonsPage() {
 
 			<SaisonForm />
 
-			<Suspense fallback={<p className="text-sm text-muted-foreground">Lade Saisons…</p>}>
+			<Suspense
+				fallback={
+					<p className="text-sm text-muted-foreground">Lade Saisons…</p>
+				}
+			>
 				<SaisonsList />
 			</Suspense>
 		</div>
