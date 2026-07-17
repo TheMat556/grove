@@ -1,11 +1,12 @@
-import {z} from "zod";
-import {dateSchema, uuidSchema} from "@/lib/schemas/common";
+import { z } from "zod";
+import { dateSchema, uuidSchema } from "@/lib/schemas/common";
 
 export const wareneingangSchema = z.object({
 	id: uuidSchema,
+	saison_id: uuidSchema,
 	stand_id: uuidSchema,
 	datum: dateSchema,
-	erfasst_von: uuidSchema
+	erfasst_von: uuidSchema,
 });
 
 export const wareneingangInsertSchema = wareneingangSchema.omit({

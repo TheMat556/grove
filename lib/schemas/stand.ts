@@ -1,10 +1,10 @@
-import {z} from "zod";
-import {uuidSchema} from "@/lib/schemas/common";
+import { z } from "zod";
+import { uuidSchema } from "@/lib/schemas/common";
 
 export const standSchema = z.object({
 	id: uuidSchema,
 	standort_id: uuidSchema,
-	bezeichnung: z.string().min(1, "Stand ist erforderlich!")
+	bezeichnung: z.string().min(1, "Stand ist erforderlich!"),
 });
 
 export const standInsertSchema = standSchema.omit({ id: true });

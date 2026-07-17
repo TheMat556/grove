@@ -1,5 +1,6 @@
 CREATE TABLE TB_RESERVIERUNG (
 	id					UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	saison_id			UUID NOT NULL REFERENCES tb_saison(id),
 	stand_id			UUID NOT NULL REFERENCES tb_stand(id),
 	profil_id			UUID NOT NULL REFERENCES tb_profil(id),
 	kunde_id			UUID NOT NULL REFERENCES tb_kunde(id),

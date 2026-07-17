@@ -1,35 +1,38 @@
+import { createCrud } from "@/lib/data/crud";
+import { saisonCreateSchema, saisonInsertSchema } from "@/lib/schemas/saison";
+import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
-import { type Saison, type SaisonInsert, saisonInsertSchema, saisonSchema } from "@/lib/schemas/saison";
 
 const TABLE = "tb_saison";
 
-export async function getSaisons(): Promise<Saison[]> {
+const crud = createCrud({
+	table: TABLE,
+	insertSchema: saisonInsertSchema,
+	createSchema: saisonCreateSchema,
+	labels: { singular: "Saison", plural: "Saisons" },
+	orderBy: { column: "start_datum" },
+});
+
+export const getSaisons = crud.getAll;
+export const getSaison = crud.getById;
+export const createSaison = crud.create;
+export const updateSaison = crud.update;
+export const deleteSaison = crud.remove;
+
+export async function setSaisonActive(
+	id: string,
+): Promise<Tables<"tb_saison">> {
 	const supabase = await createClient();
 	const { data, error } = await supabase
 		.from(TABLE)
-		.select("*")
-		.order("start_datum", { ascending: false });
-
-	if (error) {
-		throw new Error(`Saisons konnten nicht geladen werden: ${error.message}`);
-	}
-
-	return saisonSchema.array().parse(data);
-}
-
-export async function createSaison(input: SaisonInsert): Promise<Saison> {
-	const werte = saisonInsertSchema.parse(input);
-
-	const supabase = await createClient();
-	const { data, error } = await supabase
-		.from(TABLE)
-		.insert(werte)
+		.update({ active: true })
+		.eq("id", id)
 		.select()
 		.single();
 
 	if (error) {
-		throw new Error(`Saison konnte nicht angelegt werden: ${error.message}`);
+		throw new Error(`Saison konnte nicht aktiviert werden: ${error.message}`);
 	}
 
-	return saisonSchema.parse(data);
+	return data;
 }

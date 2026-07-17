@@ -1,8 +1,9 @@
-import {z} from "zod";
-import {dateSchema, uuidSchema} from "@/lib/schemas/common";
+import { z } from "zod";
+import { dateSchema, uuidSchema } from "@/lib/schemas/common";
 
 export const inventurSchema = z.object({
 	id: uuidSchema,
+	saison_id: uuidSchema,
 	stand_id: uuidSchema,
 	produkt_id: uuidSchema,
 	profil_id: uuidSchema,

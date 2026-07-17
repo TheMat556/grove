@@ -1,48 +1,58 @@
+import { createCrud } from "@/lib/data/crud";
+import { wareneingangInsertSchema } from "@/lib/schemas/wareneingang";
+import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
-import {
-	type Wareneingang,
-	type WareneingangInsert,
-	wareneingangInsertSchema,
-	wareneingangSchema,
-} from "@/lib/schemas/wareneingang";
 
 const TABLE = "tb_wareneingang";
 
-export async function getWareneingaenge(): Promise<Wareneingang[]> {
+const crud = createCrud({
+	table: TABLE,
+	insertSchema: wareneingangInsertSchema,
+	labels: { singular: "Wareneingang", plural: "Wareneingänge" },
+	orderBy: { column: "datum", ascending: false },
+});
+
+export const getWareneingaenge = crud.getAll;
+export const getWareneingang = crud.getById;
+export const getWareneingaengeBySaisonId = crud.getBySaisonId;
+export const createWareneingang = crud.create;
+export const updateWareneingang = crud.update;
+export const deleteWareneingang = crud.remove;
+
+/**
+ * Erzeugt einen Wareneingang mit N Positionen in einer atomaren DB-Transaktion
+ * (via RPC). erfasst_von wird serverseitig aus der aktuellen Session injiziert.
+ */
+export async function createWareneingangMitPositionen(
+	kopf: Omit<Parameters<typeof crud.create>[0], "erfasst_von">,
+	positionen: Array<{
+		produkt_id: string;
+		menge: number;
+	}>,
+): Promise<Tables<"tb_wareneingang">> {
 	const supabase = await createClient();
-	const { data, error } = await supabase.from(TABLE).select("*").order("datum", { ascending: false });
+
+	const { data: user } = await supabase.auth.getUser();
+	if (!user.user) throw new Error("Nicht angemeldet.");
+
+	const kopfMitSession = {
+		...kopf,
+		erfasst_von: user.user.id,
+	};
+
+	const { data, error } = await supabase.rpc(
+		"create_wareneingang_mit_positionen",
+		{
+			p_wareneingang: kopfMitSession,
+			p_positionen: positionen,
+		},
+	);
 
 	if (error) {
-		throw new Error(`Wareneingänge konnten nicht geladen werden: ${error.message}`);
+		throw new Error(
+			`Wareneingang konnte nicht angelegt werden: ${error.message}`,
+		);
 	}
 
-	return wareneingangSchema.array().parse(data);
-}
-
-export async function getWareneingaengeByStand(standId: string): Promise<Wareneingang[]> {
-	const supabase = await createClient();
-	const { data, error } = await supabase
-		.from(TABLE)
-		.select("*")
-		.eq("stand_id", standId)
-		.order("datum", { ascending: false });
-
-	if (error) {
-		throw new Error(`Wareneingänge konnten nicht geladen werden: ${error.message}`);
-	}
-
-	return wareneingangSchema.array().parse(data);
-}
-
-export async function createWareneingang(input: WareneingangInsert): Promise<Wareneingang> {
-	const werte = wareneingangInsertSchema.parse(input);
-
-	const supabase = await createClient();
-	const { data, error } = await supabase.from(TABLE).insert(werte).select().single();
-
-	if (error) {
-		throw new Error(`Wareneingang konnte nicht angelegt werden: ${error.message}`);
-	}
-
-	return wareneingangSchema.parse(data);
+	return data as unknown as Tables<"tb_wareneingang">;
 }

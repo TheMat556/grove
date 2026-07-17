@@ -2,7 +2,8 @@ CREATE TABLE TB_SAISON (
 	id				UUID			PRIMARY KEY DEFAULT gen_random_uuid(),
 	name 			TEXT NOT NULL,
 	start_datum		DATE NOT NULL,
-	end_datum		DATE NOT NULL
+	end_datum		DATE NOT NULL,
+	active			BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 /*

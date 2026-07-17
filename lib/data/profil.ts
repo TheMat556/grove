@@ -1,47 +1,43 @@
+import "server-only";
+import type { z } from "zod";
+import { createCrud } from "@/lib/data/crud";
+import { profilInsertSchema } from "@/lib/schemas/profil";
+import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
-import { type Profil, type ProfilInsert, profilInsertSchema, profilSchema } from "@/lib/schemas/profil";
 
 const TABLE = "tb_profil";
+type Row = Database["public"]["Tables"][typeof TABLE]["Row"];
 
-export async function getProfile(): Promise<Profil[]> {
-	const supabase = await createClient();
-	const { data, error } = await supabase.from(TABLE).select("*").order("name", { ascending: true });
+const crud = createCrud({
+	table: TABLE,
+	insertSchema: profilInsertSchema,
+	labels: { singular: "Profil", plural: "Profile" },
+	orderBy: { column: "name" },
+});
 
-	if (error) {
-		throw new Error(`Profile konnten nicht geladen werden: ${error.message}`);
-	}
-
-	return profilSchema.array().parse(data);
-}
-
-export async function getProfil(id: string): Promise<Profil | null> {
-	const supabase = await createClient();
-	const { data, error } = await supabase.from(TABLE).select("*").eq("id", id).maybeSingle();
-
-	if (error) {
-		throw new Error(`Profil konnte nicht geladen werden: ${error.message}`);
-	}
-
-	return data ? profilSchema.parse(data) : null;
-}
+export const getProfile = crud.getAll;
+export const getProfil = crud.getById;
+export const updateProfil = crud.update;
+export const deleteProfil = crud.remove;
 
 /**
- * id ist die auth.users-ID und wird nicht generiert, sondern separat übergeben
- * (1:1-Erweiterung des Auth-Users).
+ * Ein Profil anlegen. Anders als bei anderen Tabellen wird die ID nicht von der
+ * DB per gen_random_uuid() vergeben, sondern muss explizit übergeben werden
+ * (tb_profil.id == auth.users.id).
  */
-export async function createProfil(id: string, input: ProfilInsert): Promise<Profil> {
+export async function createProfil(
+	id: string,
+	input: z.infer<typeof profilInsertSchema>,
+): Promise<Row> {
 	const werte = profilInsertSchema.parse(input);
-
 	const supabase = await createClient();
 	const { data, error } = await supabase
 		.from(TABLE)
-		.insert({ ...werte, id })
+		.insert({ id, ...werte })
 		.select()
 		.single();
-
 	if (error) {
 		throw new Error(`Profil konnte nicht angelegt werden: ${error.message}`);
 	}
-
-	return profilSchema.parse(data);
+	return data as Row;
 }

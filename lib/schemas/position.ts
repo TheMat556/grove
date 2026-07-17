@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { uuidSchema, numericSchema} from "@/lib/schemas/common";
+import { numericSchema, uuidSchema } from "@/lib/schemas/common";
 
 export const positionSchema = z.object({
 	id: uuidSchema,

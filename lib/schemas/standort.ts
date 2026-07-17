@@ -1,5 +1,5 @@
 import { z } from "zod";
-import {uuidSchema} from "@/lib/schemas/common";
+import { uuidSchema } from "@/lib/schemas/common";
 
 export const standortSchema = z.object({
 	id: uuidSchema,

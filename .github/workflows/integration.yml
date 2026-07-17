@@ -1,0 +1,46 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  integration:
+    name: DB Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Apply migrations
+        run: supabase db reset
+
+      - name: Export Supabase env vars
+        run: |
+          echo "SUPABASE_TEST_URL=http://127.0.0.1:54321" >> "$GITHUB_ENV"
+          SERVICE_KEY=$(supabase status --output env | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"/\1/p')
+          echo "SUPABASE_TEST_SERVICE_KEY=$SERVICE_KEY" >> "$GITHUB_ENV"
+
+      - name: Run integration tests
+        run: bun run test:integration

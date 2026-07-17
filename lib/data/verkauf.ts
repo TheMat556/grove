@@ -1,52 +1,54 @@
+import { createCrud } from "@/lib/data/crud";
+import { verkaufInsertSchema } from "@/lib/schemas/verkauf";
+import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
-import { type Verkauf, type VerkaufInsert, verkaufInsertSchema, verkaufSchema } from "@/lib/schemas/verkauf";
 
 const TABLE = "tb_verkauf";
 
-export async function getVerkaeufe(): Promise<Verkauf[]> {
-	const supabase = await createClient();
-	const { data, error } = await supabase.from(TABLE).select("*").order("verkauft_am", { ascending: false });
+const crud = createCrud({
+	table: TABLE,
+	insertSchema: verkaufInsertSchema,
+	labels: { singular: "Verkauf", plural: "Verkäufe" },
+});
 
-	if (error) {
-		throw new Error(`Verkäufe konnten nicht geladen werden: ${error.message}`);
-	}
-
-	return verkaufSchema.array().parse(data);
-}
-
-export async function getVerkaeufeByStand(standId: string): Promise<Verkauf[]> {
-	const supabase = await createClient();
-	const { data, error } = await supabase
-		.from(TABLE)
-		.select("*")
-		.eq("stand_id", standId)
-		.order("verkauft_am", { ascending: false });
-
-	if (error) {
-		throw new Error(`Verkäufe konnten nicht geladen werden: ${error.message}`);
-	}
-
-	return verkaufSchema.array().parse(data);
-}
+export const getVerkaeufe = crud.getAll;
+export const getVerkauf = crud.getById;
+export const getVerkaeufeBySaisonId = crud.getBySaisonId;
+export const updateVerkauf = crud.update;
+export const deleteVerkauf = crud.remove;
 
 /**
- * reservierung_id ist im Insert-Schema ausgeklammert (optional): bei einem
- * Sofortkauf bleibt sie NULL, beim Abschluss einer Reservierung wird sie
- * separat übergeben.
+ * Erstellt einen Verkauf mit N Positionen in einer atomaren DB-Transaktion
+ * (via RPC). profil_id wird serverseitig aus der aktuellen Session injiziert.
  */
-export async function createVerkauf(input: VerkaufInsert, reservierungId?: string): Promise<Verkauf> {
-	const werte = verkaufInsertSchema.parse(input);
-
+export async function createVerkaufMitPositionen(
+	kopf: Omit<Parameters<typeof crud.create>[0], "profil_id" | "verkauft_am">,
+	positionen: Array<{
+		produkt_id: string;
+		menge: number;
+		einzelpreis: number;
+		kreuz_montiert?: boolean;
+		hoehe_cm: number;
+	}>,
+): Promise<Tables<"tb_verkauf">> {
 	const supabase = await createClient();
-	const { data, error } = await supabase
-		.from(TABLE)
-		.insert({ ...werte, reservierung_id: reservierungId ?? null })
-		.select()
-		.single();
+
+	const { data: user } = await supabase.auth.getUser();
+	if (!user.user) throw new Error("Nicht angemeldet.");
+
+	const kopfMitSession = {
+		...kopf,
+		profil_id: user.user.id,
+	};
+
+	const { data, error } = await supabase.rpc("create_verkauf_mit_positionen", {
+		p_verkauf: kopfMitSession,
+		p_positionen: positionen,
+	});
 
 	if (error) {
 		throw new Error(`Verkauf konnte nicht angelegt werden: ${error.message}`);
 	}
 
-	return verkaufSchema.parse(data);
+	return data as unknown as Tables<"tb_verkauf">;
 }
