@@ -1,4 +1,5 @@
 import { createCrud } from "@/lib/data/crud";
+import { getCurrentProfilId } from "@/lib/data/session";
 import { wareneingangInsertSchema } from "@/lib/schemas/wareneingang";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
@@ -15,7 +16,6 @@ const crud = createCrud({
 export const getWareneingaenge = crud.getAll;
 export const getWareneingang = crud.getById;
 export const getWareneingaengeBySaisonId = crud.getBySaisonId;
-export const createWareneingang = crud.create;
 export const updateWareneingang = crud.update;
 export const deleteWareneingang = crud.remove;
 
@@ -32,13 +32,8 @@ export async function createWareneingangMitPositionen(
 ): Promise<Tables<"tb_wareneingang">> {
 	const supabase = await createClient();
 
-	const { data: user } = await supabase.auth.getUser();
-	if (!user.user) throw new Error("Nicht angemeldet.");
-
-	const kopfMitSession = {
-		...kopf,
-		erfasst_von: user.user.id,
-	};
+	const profilId = await getCurrentProfilId();
+	const kopfMitSession = { ...kopf, erfasst_von: profilId };
 
 	const { data, error } = await supabase.rpc(
 		"create_wareneingang_mit_positionen",

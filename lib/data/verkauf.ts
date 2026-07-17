@@ -1,4 +1,5 @@
 import { createCrud } from "@/lib/data/crud";
+import { getCurrentProfilId } from "@/lib/data/session";
 import { verkaufInsertSchema } from "@/lib/schemas/verkauf";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
@@ -33,13 +34,8 @@ export async function createVerkaufMitPositionen(
 ): Promise<Tables<"tb_verkauf">> {
 	const supabase = await createClient();
 
-	const { data: user } = await supabase.auth.getUser();
-	if (!user.user) throw new Error("Nicht angemeldet.");
-
-	const kopfMitSession = {
-		...kopf,
-		profil_id: user.user.id,
-	};
+	const profilId = await getCurrentProfilId();
+	const kopfMitSession = { ...kopf, profil_id: profilId };
 
 	const { data, error } = await supabase.rpc("create_verkauf_mit_positionen", {
 		p_verkauf: kopfMitSession,

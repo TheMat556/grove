@@ -90,7 +90,7 @@ async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
 }
 
 describe("tb_stand_saison junction", () => {
-	it("creates a link between stand and saison", async () => {
+	it("assigns a stand to a saison", async () => {
 		const stand = await createStand();
 		const saison = await createSaison();
 

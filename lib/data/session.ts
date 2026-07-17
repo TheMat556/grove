@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type { Tables } from "@/lib/supabase/database.types";
 
 /**
  * Liefert die aktuell angemeldete Benutzer-ID (auth.users.id = tb_profil.id).
@@ -19,7 +20,7 @@ export async function getCurrentProfilId(): Promise<string> {
 /**
  * Liefert das vollständige tb_profil des aktuellen Benutzers.
  */
-export async function getCurrentProfil(): Promise<Record<string, unknown>> {
+export async function getCurrentProfil(): Promise<Tables<"tb_profil">> {
 	const supabase = await createClient();
 	const profileId = await getCurrentProfilId();
 
@@ -33,5 +34,5 @@ export async function getCurrentProfil(): Promise<Record<string, unknown>> {
 		throw new Error("Profil konnte nicht geladen werden.");
 	}
 
-	return data as Record<string, unknown>;
+	return data;
 }

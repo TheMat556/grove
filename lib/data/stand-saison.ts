@@ -10,7 +10,7 @@ const COLUMNS = "stand_id, saison_id";
 /**
  * Verknüpft einen Stand mit einer Saison (CREATE in der Junction-Tabelle).
  */
-export async function linkStandToSaison(
+export async function assignStandToSaison(
 	standId: string,
 	saisonId: string,
 ): Promise<Tables<typeof TABLE>> {
@@ -39,7 +39,7 @@ export async function linkStandToSaison(
  * Entfernt die Verknüpfung eines Standes mit einer Saison (DELETE aus der
  * Junction-Tabelle).
  */
-export async function unlinkStandFromSaison(
+export async function removeStandFromSaison(
 	standId: string,
 	saisonId: string,
 ): Promise<void> {
@@ -60,7 +60,7 @@ export async function unlinkStandFromSaison(
 /**
  * Gibt alle Stände zurück, die mit der angegebenen Saison verknüpft sind.
  */
-export const getStändeBySaisonId = cache(
+export const getStaendeBySaison = cache(
 	async (saisonId: string): Promise<Tables<typeof TABLE>[]> => {
 		const supabase = await createClient();
 		const { data, error } = await supabase
