@@ -1,35 +1,44 @@
 // @vitest-environment node
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createTestClient } from "@/lib/supabase/test";
-
-function uid() {
-	return Math.random().toString(36).slice(2, 8);
-}
+import { createTestProfil, deleteTestAuthUser } from "./test-utils";
 
 const supabase = createTestClient();
-const createdIds: string[] = [];
+const created: string[] = [];
+
+let profilId1: string;
+let profilId2: string;
+
+beforeAll(async () => {
+	const p1 = await createTestProfil();
+	const p2 = await createTestProfil();
+	profilId1 = p1.id;
+	profilId2 = p2.id;
+	created.push(p1.id, p2.id);
+});
 
 afterAll(async () => {
-	if (createdIds.length > 0) {
-		await supabase.from("tb_profil").delete().in("id", createdIds);
+	for (const id of created) {
+		await deleteTestAuthUser(id);
 	}
 });
 
-const profilIds = [
-	"493580ed-881b-40c0-ba55-6b25f2da0ec8",
-	"ee8e77e4-e4fa-4641-8597-6c8ea55caf70",
-];
 let profilIdx = 0;
+
+function getProfilIds(): [string, string] {
+	return [profilId1, profilId2];
+}
 
 async function createProfilFixture(
 	overrides: Partial<Record<string, unknown>> = {},
 ) {
+	const profilIds = getProfilIds();
 	const id = profilIds[profilIdx++ % profilIds.length];
 	const { data, error } = await supabase
 		.from("tb_profil")
 		.upsert({
 			id,
-			name: `test-${uid()}`,
+			name: `test-${Math.random().toString(36).slice(2, 8)}`,
 			rolle: "mitarbeiter",
 			telefon: null,
 			aktiv: true,
@@ -68,7 +77,7 @@ describe.skipIf(!hasSupabase)("tb_profil CRUD", () => {
 		const profil = await createProfilFixture();
 		const { data, error } = await supabase
 			.from("tb_profil")
-			.update({ name: `updated-${uid()}` })
+			.update({ name: `updated-${Math.random().toString(36).slice(2, 8)}` })
 			.eq("id", profil.id)
 			.select()
 			.single();

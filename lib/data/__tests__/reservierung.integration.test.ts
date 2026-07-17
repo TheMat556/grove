@@ -1,6 +1,7 @@
 // @vitest-environment node
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createTestClient } from "@/lib/supabase/test";
+import { createTestProfil, deleteTestAuthUser } from "./test-utils";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
@@ -12,7 +13,15 @@ const createdSaisonIds: string[] = [];
 const createdStandortIds: string[] = [];
 const createdStandIds: string[] = [];
 const createdKundeIds: string[] = [];
-const createdProfilIds: string[] = [];
+const createdAuthUserIds: string[] = [];
+
+let sharedProfilId: string;
+
+beforeAll(async () => {
+	const profil = await createTestProfil();
+	sharedProfilId = profil.id;
+	createdAuthUserIds.push(profil.id);
+});
 
 afterAll(async () => {
 	if (createdReservierungIds.length > 0) {
@@ -30,11 +39,11 @@ afterAll(async () => {
 	if (createdKundeIds.length > 0) {
 		await supabase.from("tb_kunde").delete().in("id", createdKundeIds);
 	}
-	if (createdProfilIds.length > 0) {
-		await supabase.from("tb_profil").delete().in("id", createdProfilIds);
-	}
 	if (createdSaisonIds.length > 0) {
 		await supabase.from("tb_saison").delete().in("id", createdSaisonIds);
+	}
+	for (const id of createdAuthUserIds) {
+		await deleteTestAuthUser(id);
 	}
 });
 
@@ -109,24 +118,8 @@ async function createKunde(overrides: Partial<Record<string, unknown>> = {}) {
 	return data;
 }
 
-const PROFIL_ID = "ee8e77e4-e4fa-4641-8597-6c8ea55caf70";
-
-async function createProfil(overrides: Partial<Record<string, unknown>> = {}) {
-	const { data, error } = await supabase
-		.from("tb_profil")
-		.upsert({
-			id: PROFIL_ID,
-			name: `test-${uid()}`,
-			rolle: "mitarbeiter",
-			telefon: null,
-			aktiv: true,
-			...overrides,
-		})
-		.select()
-		.single();
-
-	if (error) throw error;
-	return data;
+async function createProfil() {
+	return { id: sharedProfilId };
 }
 
 async function createReservierung(

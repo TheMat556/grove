@@ -1,8 +1,9 @@
 // @vitest-environment node
 
 import { createClient } from "@supabase/supabase-js";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { Database } from "@/lib/supabase/database.types";
+import { createTestProfil, deleteTestAuthUser } from "./test-utils";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
@@ -43,12 +44,26 @@ const cleanupOrder: TableName[] = [
 	"tb_profil",
 ];
 
+const createdAuthUserIds: string[] = [];
+
+let sharedProfilId: string;
+
+beforeAll(async () => {
+	const profil = await createTestProfil();
+	sharedProfilId = profil.id;
+	createdAuthUserIds.push(profil.id);
+	createdIds.tb_profil.push(profil.id);
+});
+
 afterAll(async () => {
 	for (const table of cleanupOrder) {
 		const ids = createdIds[table];
 		if (ids.length > 0) {
 			await supabase.from(table).delete().in("id", ids);
 		}
+	}
+	for (const id of createdAuthUserIds) {
+		await deleteTestAuthUser(id);
 	}
 });
 
@@ -120,24 +135,8 @@ async function createProdukt() {
 	return data!;
 }
 
-const PROFIL_ID = "180edde9-ac8c-4283-b985-de10b2f6af68";
-
 async function createProfil() {
-	const { data } = await supabase
-		.from("tb_profil")
-		.upsert({
-			id: PROFIL_ID,
-			name: `test-${uid()}`,
-			telefon: null,
-			rolle: "mitarbeiter",
-			aktiv: true,
-		})
-		.select()
-		.single()
-		.then((r) => {
-			return r;
-		});
-	return data!;
+	return { id: sharedProfilId };
 }
 
 const hasSupabase = !!process.env.SUPABASE_TEST_URL;
