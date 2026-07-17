@@ -97,9 +97,22 @@ describe.skipIf(!hasSupabase)("tb_saison active trigger", () => {
 		const s1 = await createSaison();
 		const s2 = await createSaison();
 
-		await supabase.from("tb_saison").update({ active: true }).eq("id", s1.id);
+		const { data: s1active, error: s1err } = await supabase
+			.from("tb_saison")
+			.update({ active: true })
+			.eq("id", s1.id)
+			.select()
+			.single();
 
-		await supabase.from("tb_saison").update({ active: true }).eq("id", s2.id);
+		expect(s1err).toBeNull();
+		expect(s1active?.active).toBe(true);
+
+		const { error: s2err } = await supabase
+			.from("tb_saison")
+			.update({ active: true })
+			.eq("id", s2.id);
+
+		expect(s2err).toBeNull();
 
 		const { data: s1after } = await supabase
 			.from("tb_saison")

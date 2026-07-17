@@ -326,5 +326,13 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 		// Should fail - menge > 0 CHECK constraint in DB
 		expect(error).not.toBeNull();
 		expect(data).toBeNull();
+
+		// Verify the header insert was rolled back (atomicity). saison.id is unique
+		// to this test, so no tb_wareneingang row should reference it.
+		const { data: headers } = await supabase
+			.from("tb_wareneingang")
+			.select("id")
+			.eq("saison_id", saison.id);
+		expect(headers).toEqual([]);
 	});
 });

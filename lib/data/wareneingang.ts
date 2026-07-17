@@ -1,8 +1,15 @@
 import { createCrud } from "@/lib/data/crud";
 import { getCurrentProfilId } from "@/lib/data/session";
 import { wareneingangInsertSchema } from "@/lib/schemas/wareneingang";
+import { wareneingangspositionInsertSchema } from "@/lib/schemas/wareneingangsposition";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+
+// Positionen tragen ihre wareneingang_id erst nach dem Kopf-Insert (via RPC),
+// daher wird sie für die Vorab-Validierung ausgeblendet.
+const positionRpcSchema = wareneingangspositionInsertSchema.omit({
+	wareneingang_id: true,
+});
 
 const TABLE = "tb_wareneingang";
 
@@ -33,13 +40,19 @@ export async function createWareneingangMitPositionen(
 	const supabase = await createClient();
 
 	const profilId = await getCurrentProfilId();
-	const kopfMitSession = { ...kopf, erfasst_von: profilId };
+	// Kopf erst nach dem Injizieren der Session-Felder validieren, damit das
+	// vollständige Insert-Objekt geprüft wird (analog zu crud.create()).
+	const kopfMitSession = wareneingangInsertSchema.parse({
+		...kopf,
+		erfasst_von: profilId,
+	});
+	const gepruefePositionen = positionen.map((p) => positionRpcSchema.parse(p));
 
 	const { data, error } = await supabase.rpc(
 		"create_wareneingang_mit_positionen",
 		{
 			p_wareneingang: kopfMitSession,
-			p_positionen: positionen,
+			p_positionen: gepruefePositionen,
 		},
 	);
 

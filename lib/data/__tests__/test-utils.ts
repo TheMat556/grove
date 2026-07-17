@@ -19,7 +19,8 @@ function uniqueEmail(): string {
  * On failure, cleans up the auth user automatically.
  */
 function getClient() {
-	if (!supabase) throw new Error("SUPABASE_TEST_URL / SUPABASE_TEST_SERVICE_KEY not set");
+	if (!supabase)
+		throw new Error("SUPABASE_TEST_URL / SUPABASE_TEST_SERVICE_KEY not set");
 	return supabase;
 }
 

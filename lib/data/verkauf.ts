@@ -1,8 +1,13 @@
 import { createCrud } from "@/lib/data/crud";
 import { getCurrentProfilId } from "@/lib/data/session";
+import { positionInsertSchema } from "@/lib/schemas/position";
 import { verkaufInsertSchema } from "@/lib/schemas/verkauf";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+
+// Positionen tragen ihre verkauf_id erst nach dem Kopf-Insert (via RPC), daher
+// wird sie für die Vorab-Validierung ausgeblendet.
+const positionRpcSchema = positionInsertSchema.omit({ verkauf_id: true });
 
 const TABLE = "tb_verkauf";
 
@@ -35,11 +40,17 @@ export async function createVerkaufMitPositionen(
 	const supabase = await createClient();
 
 	const profilId = await getCurrentProfilId();
-	const kopfMitSession = { ...kopf, profil_id: profilId };
+	// Kopf erst nach dem Injizieren der Session-Felder validieren, damit das
+	// vollständige Insert-Objekt geprüft wird (analog zu crud.create()).
+	const kopfMitSession = verkaufInsertSchema.parse({
+		...kopf,
+		profil_id: profilId,
+	});
+	const gepruefePositionen = positionen.map((p) => positionRpcSchema.parse(p));
 
 	const { data, error } = await supabase.rpc("create_verkauf_mit_positionen", {
 		p_verkauf: kopfMitSession,
-		p_positionen: positionen,
+		p_positionen: gepruefePositionen,
 	});
 
 	if (error) {
