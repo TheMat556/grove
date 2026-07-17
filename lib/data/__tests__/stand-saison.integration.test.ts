@@ -89,7 +89,9 @@ async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
 	return data;
 }
 
-describe("tb_stand_saison junction", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_stand_saison junction", () => {
 	it("assigns a stand to a saison", async () => {
 		const stand = await createStand();
 		const saison = await createSaison();

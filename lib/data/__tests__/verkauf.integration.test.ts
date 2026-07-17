@@ -125,7 +125,13 @@ const PROFIL_ID = "180edde9-ac8c-4283-b985-de10b2f6af68";
 async function createProfil() {
 	const { data } = await supabase
 		.from("tb_profil")
-		.upsert({ id: PROFIL_ID, name: `test-${uid()}`, telefon: null, rolle: "mitarbeiter", aktiv: true })
+		.upsert({
+			id: PROFIL_ID,
+			name: `test-${uid()}`,
+			telefon: null,
+			rolle: "mitarbeiter",
+			aktiv: true,
+		})
 		.select()
 		.single()
 		.then((r) => {
@@ -134,7 +140,9 @@ async function createProfil() {
 	return data!;
 }
 
-describe("tb_verkauf RPC", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_verkauf RPC", () => {
 	it("creates verkauf with 2 positions atomically", async () => {
 		const saison = await createSaison();
 		const standort = await createStandort();

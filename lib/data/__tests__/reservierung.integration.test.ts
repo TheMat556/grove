@@ -114,7 +114,14 @@ const PROFIL_ID = "ee8e77e4-e4fa-4641-8597-6c8ea55caf70";
 async function createProfil(overrides: Partial<Record<string, unknown>> = {}) {
 	const { data, error } = await supabase
 		.from("tb_profil")
-		.upsert({ id: PROFIL_ID, name: `test-${uid()}`, rolle: "mitarbeiter", telefon: null, aktiv: true, ...overrides })
+		.upsert({
+			id: PROFIL_ID,
+			name: `test-${uid()}`,
+			rolle: "mitarbeiter",
+			telefon: null,
+			aktiv: true,
+			...overrides,
+		})
 		.select()
 		.single();
 
@@ -149,7 +156,9 @@ async function createReservierung(
 	return data;
 }
 
-describe("tb_reservierung CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_reservierung CRUD", () => {
 	it("creates reservierung with given values", async () => {
 		const r = await createReservierung();
 		expect(r.versandart).toBe("abholung");
@@ -193,7 +202,7 @@ describe("tb_reservierung CRUD", () => {
 	});
 });
 
-describe("tb_reservierung by saison", () => {
+describe.skipIf(!hasSupabase)("tb_reservierung by saison", () => {
 	it("filters reservierungen by saison_id", async () => {
 		const saison = await createSaison();
 		const stand = await createStand();

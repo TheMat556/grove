@@ -111,7 +111,14 @@ const PROFIL_ID = "3e901eea-9b29-4084-b164-b931b5498a92";
 async function createProfil(overrides: Partial<Record<string, unknown>> = {}) {
 	const { data, error } = await supabase
 		.from("tb_profil")
-		.upsert({ id: PROFIL_ID, name: `test-${uid()}`, rolle: "mitarbeiter", telefon: null, aktiv: true, ...overrides })
+		.upsert({
+			id: PROFIL_ID,
+			name: `test-${uid()}`,
+			rolle: "mitarbeiter",
+			telefon: null,
+			aktiv: true,
+			...overrides,
+		})
 		.select()
 		.single();
 
@@ -147,7 +154,9 @@ async function createInventur(
 	return data;
 }
 
-describe("tb_inventur CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_inventur CRUD", () => {
 	it("creates inventur with given differenz", async () => {
 		const inv = await createInventur();
 		expect(inv.differenz).toBe(5);
@@ -195,7 +204,7 @@ describe("tb_inventur CRUD", () => {
 	});
 });
 
-describe("tb_inventur by saison", () => {
+describe.skipIf(!hasSupabase)("tb_inventur by saison", () => {
 	it("filters inventuren by saison_id", async () => {
 		const saison = await createSaison();
 		const stand = await createStand();

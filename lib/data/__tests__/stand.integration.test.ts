@@ -55,7 +55,9 @@ async function createStand(overrides: Partial<Record<string, unknown>> = {}) {
 	return data;
 }
 
-describe("tb_stand CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_stand CRUD", () => {
 	it("creates stand with given bezeichnung", async () => {
 		const stand = await createStand();
 		expect(stand.bezeichnung).toMatch(/^test-/);

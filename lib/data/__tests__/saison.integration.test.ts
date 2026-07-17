@@ -32,7 +32,9 @@ async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
 	return data;
 }
 
-describe("tb_saison CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_saison CRUD", () => {
 	it("creates saison with active=false by default", async () => {
 		const saison = await createSaison();
 		expect(saison.active).toBe(false);
@@ -77,7 +79,7 @@ describe("tb_saison CRUD", () => {
 	});
 });
 
-describe("tb_saison active trigger", () => {
+describe.skipIf(!hasSupabase)("tb_saison active trigger", () => {
 	it("sets a saison active", async () => {
 		const saison = await createSaison();
 		const { data, error } = await supabase

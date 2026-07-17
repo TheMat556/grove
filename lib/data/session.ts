@@ -1,6 +1,6 @@
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/lib/supabase/database.types";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * Liefert die aktuell angemeldete Benutzer-ID (auth.users.id = tb_profil.id).

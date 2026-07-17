@@ -1,4 +1,9 @@
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { getSaisons } from "@/lib/data/saison";
 import type { Saison } from "@/lib/schemas/saison";
 import { SaisonForm } from "./saison-form";
@@ -26,7 +31,9 @@ export default async function SaisonsPage() {
 			)}
 
 			{!fehler && saisons.length === 0 && (
-				<p className="text-sm text-muted-foreground">Noch keine Saisons angelegt.</p>
+				<p className="text-sm text-muted-foreground">
+					Noch keine Saisons angelegt.
+				</p>
 			)}
 
 			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

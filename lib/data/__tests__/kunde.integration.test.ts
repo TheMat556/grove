@@ -33,7 +33,9 @@ async function createKunde(overrides: Partial<Record<string, unknown>> = {}) {
 	return data;
 }
 
-describe("tb_kunde CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_kunde CRUD", () => {
 	it("creates kunde with ist_firma=false by default", async () => {
 		const kunde = await createKunde();
 		expect(kunde.ist_firma).toBe(false);

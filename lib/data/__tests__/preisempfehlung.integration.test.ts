@@ -82,7 +82,9 @@ async function createPreisempfehlung(
 	return data;
 }
 
-describe("tb_preisempfehlung CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_preisempfehlung CRUD", () => {
 	it("creates preisempfehlung with given preis", async () => {
 		const pe = await createPreisempfehlung();
 		expect(pe.preis).toBe(19.99);
@@ -124,7 +126,7 @@ describe("tb_preisempfehlung CRUD", () => {
 	});
 });
 
-describe("tb_preisempfehlung by saison", () => {
+describe.skipIf(!hasSupabase)("tb_preisempfehlung by saison", () => {
 	it("filters preisempfehlungen by saison_id", async () => {
 		const saison = await createSaison();
 		const produkt1 = await createProdukt();

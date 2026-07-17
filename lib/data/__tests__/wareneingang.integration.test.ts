@@ -121,7 +121,14 @@ const PROFIL_ID = "d4a54cc9-8a48-45dc-8f52-31092d2acbda";
 async function createProfil(overrides: Partial<Record<string, unknown>> = {}) {
 	const { data, error } = await supabase
 		.from("tb_profil")
-		.upsert({ id: PROFIL_ID, name: `test-${uid()}`, rolle: "mitarbeiter", telefon: null, aktiv: true, ...overrides })
+		.upsert({
+			id: PROFIL_ID,
+			name: `test-${uid()}`,
+			rolle: "mitarbeiter",
+			telefon: null,
+			aktiv: true,
+			...overrides,
+		})
 		.select()
 		.single();
 
@@ -153,7 +160,9 @@ async function createWareneingang(
 	return data;
 }
 
-describe("tb_wareneingang CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_wareneingang CRUD", () => {
 	it("creates wareneingang with given datum", async () => {
 		const we = await createWareneingang();
 		expect(we.datum).toBe("2026-06-15");
@@ -199,7 +208,7 @@ describe("tb_wareneingang CRUD", () => {
 	});
 });
 
-describe("tb_wareneingang by saison", () => {
+describe.skipIf(!hasSupabase)("tb_wareneingang by saison", () => {
 	it("filters wareneingaenge by saison_id", async () => {
 		const saison = await createSaison();
 		const stand = await createStand();
@@ -241,7 +250,7 @@ describe("tb_wareneingang by saison", () => {
 	});
 });
 
-describe("tb_wareneingang RPC", () => {
+describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 	it("creates wareneingang with 2 positions atomically", async () => {
 		const saison = await createSaison();
 		const stand = await createStand();

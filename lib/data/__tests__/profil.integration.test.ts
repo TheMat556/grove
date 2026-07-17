@@ -15,7 +15,10 @@ afterAll(async () => {
 	}
 });
 
-const profilIds = ["493580ed-881b-40c0-ba55-6b25f2da0ec8", "ee8e77e4-e4fa-4641-8597-6c8ea55caf70"];
+const profilIds = [
+	"493580ed-881b-40c0-ba55-6b25f2da0ec8",
+	"ee8e77e4-e4fa-4641-8597-6c8ea55caf70",
+];
 let profilIdx = 0;
 
 async function createProfilFixture(
@@ -24,7 +27,14 @@ async function createProfilFixture(
 	const id = profilIds[profilIdx++ % profilIds.length];
 	const { data, error } = await supabase
 		.from("tb_profil")
-		.upsert({ id, name: `test-${uid()}`, rolle: "mitarbeiter", telefon: null, aktiv: true, ...overrides })
+		.upsert({
+			id,
+			name: `test-${uid()}`,
+			rolle: "mitarbeiter",
+			telefon: null,
+			aktiv: true,
+			...overrides,
+		})
 		.select()
 		.single();
 
@@ -32,7 +42,9 @@ async function createProfilFixture(
 	return data;
 }
 
-describe("tb_profil CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_profil CRUD", () => {
 	it("creates profil with explicit id", async () => {
 		const profil = await createProfilFixture();
 		expect(profil.id).toBeDefined();

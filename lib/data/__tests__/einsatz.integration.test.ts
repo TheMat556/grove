@@ -89,7 +89,14 @@ const PROFIL_ID = "c7d6cbff-34a2-4f8a-9b82-37f1071b17d1";
 async function createProfil(overrides: Partial<Record<string, unknown>> = {}) {
 	const { data, error } = await supabase
 		.from("tb_profil")
-		.upsert({ id: PROFIL_ID, name: `test-${uid()}`, rolle: "mitarbeiter", telefon: null, aktiv: true, ...overrides })
+		.upsert({
+			id: PROFIL_ID,
+			name: `test-${uid()}`,
+			rolle: "mitarbeiter",
+			telefon: null,
+			aktiv: true,
+			...overrides,
+		})
 		.select()
 		.single();
 
@@ -120,7 +127,9 @@ async function createEinsatz(overrides: Partial<Record<string, unknown>> = {}) {
 	return data;
 }
 
-describe("tb_einsatz CRUD", () => {
+const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+
+describe.skipIf(!hasSupabase)("tb_einsatz CRUD", () => {
 	it("creates einsatz with given von", async () => {
 		const e = await createEinsatz();
 		expect(e.von).toBe("2026-06-15");
@@ -164,7 +173,7 @@ describe("tb_einsatz CRUD", () => {
 	});
 });
 
-describe("tb_einsatz by saison", () => {
+describe.skipIf(!hasSupabase)("tb_einsatz by saison", () => {
 	it("filters einsätze by saison_id", async () => {
 		const saison = await createSaison();
 		const stand = await createStand();
