@@ -30,8 +30,25 @@ jobs:
         with:
           version: latest
 
+      - name: Cache Supabase Docker images
+        id: cache-supabase
+        uses: actions/cache@v4
+        with:
+          path: /tmp/supabase-docker
+          key: supabase-${{ runner.os }}-${{ hashFiles('supabase/config.toml') }}
+
+      - name: Load cached Docker images
+        if: steps.cache-supabase.outputs.cache-hit == 'true'
+        run: docker load -i /tmp/supabase-docker/images.tar
+
       - name: Start Supabase
         run: supabase start
+
+      - name: Save Docker images for future runs
+        if: steps.cache-supabase.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/supabase-docker
+          docker save $(docker images --filter=reference='supabase/*' --format '{{.Repository}}:{{.Tag}}') -o /tmp/supabase-docker/images.tar
 
       - name: Apply migrations
         run: supabase db reset
