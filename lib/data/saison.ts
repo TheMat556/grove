@@ -1,5 +1,6 @@
 import { createCrud } from "@/lib/data/crud";
 import { saisonCreateSchema, saisonInsertSchema } from "@/lib/schemas/saison";
+
 const TABLE = "tb_saison";
 
 const crud = createCrud({
@@ -15,4 +16,3 @@ export const getSaison = crud.getById;
 export const createSaison = crud.create;
 export const updateSaison = crud.update;
 export const deleteSaison = crud.remove;
-

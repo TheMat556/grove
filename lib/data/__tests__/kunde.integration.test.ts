@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterAll, describe, expect, it } from "vitest";
-import { createTestCrud, getClient } from "./test-utils";
 import { kundeInsertSchema } from "@/lib/schemas/kunde";
+import { createTestCrud, getClient } from "./test-utils";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);

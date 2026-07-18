@@ -1,11 +1,16 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createTestCrud, getClient, createTestProfil, deleteTestAuthUser } from "./test-utils";
-import { saisonInsertSchema } from "@/lib/schemas/saison";
-import { standortInsertSchema } from "@/lib/schemas/standort";
-import { standInsertSchema } from "@/lib/schemas/stand";
 import { kundeInsertSchema } from "@/lib/schemas/kunde";
 import { reservierungInsertSchema } from "@/lib/schemas/reservierung";
+import { saisonInsertSchema } from "@/lib/schemas/saison";
+import { standInsertSchema } from "@/lib/schemas/stand";
+import { standortInsertSchema } from "@/lib/schemas/standort";
+import {
+	createTestCrud,
+	createTestProfil,
+	deleteTestAuthUser,
+	getClient,
+} from "./test-utils";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
@@ -176,7 +181,9 @@ describe.skipIf(!hasSupabase)("tb_reservierung CRUD", () => {
 
 	it("updates reservierung versandart", async () => {
 		const r = await createReservierung();
-		const updated = await crudReservierung.update(r.id, { versandart: "lieferung" });
+		const updated = await crudReservierung.update(r.id, {
+			versandart: "lieferung",
+		});
 
 		expect(updated.versandart).toBe("lieferung");
 	});

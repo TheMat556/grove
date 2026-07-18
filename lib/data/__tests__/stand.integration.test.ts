@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { afterAll, describe, expect, it } from "vitest";
-import { createTestCrud, getClient } from "./test-utils";
 import { standInsertSchema } from "@/lib/schemas/stand";
 import { standortInsertSchema } from "@/lib/schemas/standort";
+import { createTestCrud, getClient } from "./test-utils";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
@@ -32,7 +32,9 @@ afterAll(async () => {
 	}
 });
 
-async function createStandort(overrides: Partial<Record<string, unknown>> = {}) {
+async function createStandort(
+	overrides: Partial<Record<string, unknown>> = {},
+) {
 	const standort = await crudStandort.create({
 		ort: `test-${uid()}`,
 		plz: 12345,

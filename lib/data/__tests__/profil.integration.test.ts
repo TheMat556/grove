@@ -1,8 +1,12 @@
 // @vitest-environment node
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createTestCrud, getClient } from "./test-utils";
-import { createTestProfil, deleteTestAuthUser } from "./test-utils";
 import { profilInsertSchema } from "@/lib/schemas/profil";
+import {
+	createTestCrud,
+	createTestProfil,
+	deleteTestAuthUser,
+	getClient,
+} from "./test-utils";
 
 const crud = createTestCrud({
 	table: "tb_profil",

@@ -1,9 +1,10 @@
 // @vitest-environment node
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createTestClient } from "@/lib/supabase/test";
-import { createCrud } from "@/lib/data/crud";
 import type { CrudConfig } from "@/lib/data/crud";
+import { createCrud } from "@/lib/data/crud";
 import type { Database } from "@/lib/supabase/database.types";
+import { createTestClient } from "@/lib/supabase/test";
+
 type TableName = keyof Database["public"]["Tables"];
 
 const supabase =

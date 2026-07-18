@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { afterAll, describe, expect, it } from "vitest";
-import { createTestCrud, getClient } from "./test-utils";
-import { standortInsertSchema } from "@/lib/schemas/standort";
-import { standInsertSchema } from "@/lib/schemas/stand";
 import { saisonInsertSchema } from "@/lib/schemas/saison";
+import { standInsertSchema } from "@/lib/schemas/stand";
+import { standortInsertSchema } from "@/lib/schemas/standort";
+import { createTestCrud, getClient } from "./test-utils";
 
 function uid() {
 	return Math.random().toString(36).slice(2, 8);
