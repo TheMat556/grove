@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 .idea
+.opencode
 
 # debug
 npm-debug.log*
@@ -38,9 +39,16 @@ yarn-error.log*
 # vercel
 .vercel
 
+#supabase
+supabase/.temp
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 # Sentry Config File
 .env.sentry-build-plugin
+.env.test
+
+# docs
+/docs

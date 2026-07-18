@@ -1,0 +1,71 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  integration:
+    name: DB Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.109.1
+
+      - name: Cache Supabase Docker images
+        id: cache-supabase
+        uses: actions/cache@v4
+        with:
+          path: /tmp/supabase-docker
+          key: supabase-${{ runner.os }}-cli2.109.1-${{ hashFiles('supabase/config.toml') }}
+
+      - name: Load cached Docker images
+        if: steps.cache-supabase.outputs.cache-hit == 'true'
+        run: |
+          if [ -f /tmp/supabase-docker/images.tar ]; then
+            docker load -i /tmp/supabase-docker/images.tar
+          else
+            echo "Cache hit but no images.tar found — skipping load"
+          fi
+
+      - name: Start Supabase
+        run: supabase start
+
+      - name: Cache Docker images
+        if: steps.cache-supabase.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p /tmp/supabase-docker
+          IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i supabase || true)
+          if [ -n "$IMAGES" ]; then
+            docker save $IMAGES -o /tmp/supabase-docker/images.tar
+            echo "Cached $(echo $IMAGES | wc -w) Supabase images"
+          else
+            echo "No Supabase images found to cache"
+          fi
+
+      - name: Export Supabase env vars
+        run: |
+          echo "SUPABASE_TEST_URL=http://127.0.0.1:54321" >> "$GITHUB_ENV"
+          SERVICE_KEY=$(supabase status --output env | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"/\1/p')
+          echo "SUPABASE_TEST_SERVICE_KEY=$SERVICE_KEY" >> "$GITHUB_ENV"
+
+      - name: Run integration tests
+        run: bun run test:integration
