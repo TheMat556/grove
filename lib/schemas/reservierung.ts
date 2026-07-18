@@ -14,11 +14,17 @@ export const reservierungSchema = z.object({
 	reserviert_am: z.string().datetime(),
 });
 
-export const reservierungInsertSchema = reservierungSchema.omit({
-	id: true,
-	reserviert_am: true,
-	status: true,
-});
+export const reservierungInsertSchema = reservierungSchema
+	.omit({
+		id: true,
+		reserviert_am: true,
+		status: true,
+	})
+	.extend({
+		// Im Insert optional — beim Anlegen wird kein Anzahlungsbetrag erwartet.
+		// DB-Spalte ist nullable, DB-Default ist NULL.
+		anzahlungsbetrag: numericSchema.nullable().optional(),
+	});
 
 export type Reservierung = z.infer<typeof reservierungSchema>;
 export type ReservierungInsert = z.infer<typeof reservierungInsertSchema>;
