@@ -19,7 +19,8 @@ export function uid(): string {
 }
 
 /** Integrationstests laufen nur mit konfiguriertem Test-Supabase. */
-export const hasSupabase = !!process.env.SUPABASE_TEST_URL;
+export const hasSupabase =
+	!!process.env.SUPABASE_TEST_URL && !!process.env.SUPABASE_TEST_SERVICE_KEY;
 
 const supabase =
 	process.env.SUPABASE_TEST_URL && process.env.SUPABASE_TEST_SERVICE_KEY
@@ -236,11 +237,12 @@ export function createFixtures() {
 		const client = getClient();
 
 		for (const { stand_id, saison_id } of junctions) {
-			await client
+			const { error } = await client
 				.from("tb_stand_saison")
 				.delete()
 				.eq("stand_id", stand_id)
 				.eq("saison_id", saison_id);
+			if (error) throw error;
 		}
 
 		// FK-sichere Reihenfolge: Kinder vor Eltern.
@@ -262,7 +264,8 @@ export function createFixtures() {
 		for (const table of order) {
 			const ids = tracked.get(table);
 			if (ids && ids.length > 0) {
-				await client.from(table).delete().in("id", ids);
+				const { error } = await client.from(table).delete().in("id", ids);
+				if (error) throw error;
 			}
 		}
 
