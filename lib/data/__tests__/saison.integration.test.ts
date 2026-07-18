@@ -1,11 +1,7 @@
 // @vitest-environment node
 import { afterAll, describe, expect, it } from "vitest";
 import { saisonInsertSchema } from "@/lib/schemas/saison";
-import { createTestCrud, getClient } from "./test-utils";
-
-function uid() {
-	return Math.random().toString(36).slice(2, 8);
-}
+import { createTestCrud, getClient, hasSupabase, uid } from "./test-utils";
 
 const crud = createTestCrud({
 	table: "tb_saison",
@@ -21,8 +17,6 @@ afterAll(async () => {
 		await getClient().from("tb_saison").delete().in("id", createdIds);
 	}
 });
-
-const hasSupabase = !!process.env.SUPABASE_TEST_URL;
 
 describe.skipIf(!hasSupabase)("tb_saison CRUD", () => {
 	it("creates saison with active=false by default", async () => {

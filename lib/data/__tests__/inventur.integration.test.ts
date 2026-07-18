@@ -1,45 +1,7 @@
 // @vitest-environment node
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { inventurInsertSchema } from "@/lib/schemas/inventur";
-import { produktInsertSchema } from "@/lib/schemas/produkt";
-import { saisonInsertSchema } from "@/lib/schemas/saison";
-import { standInsertSchema } from "@/lib/schemas/stand";
-import { standortInsertSchema } from "@/lib/schemas/standort";
-import {
-	createTestCrud,
-	createTestProfil,
-	deleteTestAuthUser,
-	getClient,
-} from "./test-utils";
-
-function uid() {
-	return Math.random().toString(36).slice(2, 8);
-}
-
-const crudSaison = createTestCrud({
-	table: "tb_saison",
-	insertSchema: saisonInsertSchema,
-	labels: { singular: "Saison", plural: "Saisons" },
-	orderBy: { column: "start_datum" },
-});
-
-const crudStandort = createTestCrud({
-	table: "tb_standort",
-	insertSchema: standortInsertSchema,
-	labels: { singular: "Standort", plural: "Standorte" },
-});
-
-const crudStand = createTestCrud({
-	table: "tb_stand",
-	insertSchema: standInsertSchema,
-	labels: { singular: "Stand", plural: "Stände" },
-});
-
-const crudProdukt = createTestCrud({
-	table: "tb_produkt",
-	insertSchema: produktInsertSchema,
-	labels: { singular: "Produkt", plural: "Produkte" },
-});
+import { createFixtures, createTestCrud, hasSupabase } from "./test-utils";
 
 const crudInventur = createTestCrud({
 	table: "tb_inventur",
@@ -47,116 +9,29 @@ const crudInventur = createTestCrud({
 	labels: { singular: "Inventur", plural: "Inventuren" },
 });
 
-const createdInventurIds: string[] = [];
-const createdSaisonIds: string[] = [];
-const createdStandortIds: string[] = [];
-const createdStandIds: string[] = [];
-const createdProduktIds: string[] = [];
-const createdAuthUserIds: string[] = [];
-
-let sharedProfilId: string;
-
-beforeAll(async () => {
-	const profil = await createTestProfil();
-	sharedProfilId = profil.id;
-	createdAuthUserIds.push(profil.id);
-});
-
-afterAll(async () => {
-	if (createdInventurIds.length > 0) {
-		await getClient().from("tb_inventur").delete().in("id", createdInventurIds);
-	}
-	if (createdStandIds.length > 0) {
-		await getClient().from("tb_stand").delete().in("id", createdStandIds);
-	}
-	if (createdStandortIds.length > 0) {
-		await getClient().from("tb_standort").delete().in("id", createdStandortIds);
-	}
-	if (createdProduktIds.length > 0) {
-		await getClient().from("tb_produkt").delete().in("id", createdProduktIds);
-	}
-	if (createdSaisonIds.length > 0) {
-		await getClient().from("tb_saison").delete().in("id", createdSaisonIds);
-	}
-	for (const id of createdAuthUserIds) {
-		await deleteTestAuthUser(id);
-	}
-});
-
-async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
-	const saison = await crudSaison.create({
-		name: `test-${uid()}`,
-		start_datum: "2026-01-01",
-		end_datum: "2026-12-31",
-		...overrides,
-	});
-	createdSaisonIds.push(saison.id);
-	return saison;
-}
-
-async function createStandort(
-	overrides: Partial<Record<string, unknown>> = {},
-) {
-	const standort = await crudStandort.create({
-		ort: `test-${uid()}`,
-		plz: 1234,
-		adresse: `${uid()}-Straße 1`,
-		...overrides,
-	});
-	createdStandortIds.push(standort.id);
-	return standort;
-}
-
-async function createStand(overrides: Partial<Record<string, unknown>> = {}) {
-	const standort = await createStandort();
-	const stand = await crudStand.create({
-		bezeichnung: `test-${uid()}`,
-		standort_id: standort.id,
-		...overrides,
-	});
-	createdStandIds.push(stand.id);
-	return stand;
-}
-
-async function createProdukt(overrides: Partial<Record<string, unknown>> = {}) {
-	const produkt = await crudProdukt.create({
-		bezeichnung: `test-${uid()}`,
-		art: "Baum",
-		von_cm: 0,
-		bis_cm: 100,
-		...overrides,
-	});
-	createdProduktIds.push(produkt.id);
-	return produkt;
-}
-
-async function createProfil() {
-	return { id: sharedProfilId };
-}
+const fixtures = createFixtures();
 
 async function createInventur(
 	overrides: Partial<Record<string, unknown>> = {},
 ) {
-	const saison = await createSaison();
-	const stand = await createStand();
-	const produkt = await createProdukt();
-	const profil = await createProfil();
+	const saison = await fixtures.createSaison();
+	const stand = await fixtures.createStand();
+	const produkt = await fixtures.createProdukt();
+	const profilId = await fixtures.getProfilId();
 
 	const inv = await crudInventur.create({
 		saison_id: saison.id,
 		stand_id: stand.id,
 		produkt_id: produkt.id,
-		profil_id: profil.id,
+		profil_id: profilId,
 		datum: "2026-06-15",
 		differenz: 5,
 		grund: null,
 		...overrides,
 	});
-	createdInventurIds.push(inv.id);
+	fixtures.track("tb_inventur", inv.id);
 	return inv;
 }
-
-const hasSupabase = !!process.env.SUPABASE_TEST_URL;
 
 describe.skipIf(!hasSupabase)("tb_inventur CRUD", () => {
 	it("creates inventur with given differenz", async () => {
@@ -196,32 +71,32 @@ describe.skipIf(!hasSupabase)("tb_inventur CRUD", () => {
 
 describe.skipIf(!hasSupabase)("tb_inventur by saison", () => {
 	it("filters inventuren by saison_id", async () => {
-		const saison = await createSaison();
-		const stand = await createStand();
-		const produkt = await createProdukt();
-		const profil = await createProfil();
+		const saison = await fixtures.createSaison();
+		const stand = await fixtures.createStand();
+		const produkt = await fixtures.createProdukt();
+		const profilId = await fixtures.getProfilId();
 
 		const i1 = await crudInventur.create({
 			saison_id: saison.id,
 			stand_id: stand.id,
 			produkt_id: produkt.id,
-			profil_id: profil.id,
+			profil_id: profilId,
 			datum: "2026-06-15",
 			differenz: 5,
 			grund: null,
 		});
-		createdInventurIds.push(i1.id);
+		fixtures.track("tb_inventur", i1.id);
 
 		const i2 = await crudInventur.create({
 			saison_id: saison.id,
 			stand_id: stand.id,
 			produkt_id: produkt.id,
-			profil_id: profil.id,
+			profil_id: profilId,
 			datum: "2026-07-01",
 			differenz: -2,
 			grund: "Retoure",
 		});
-		createdInventurIds.push(i2.id);
+		fixtures.track("tb_inventur", i2.id);
 
 		const data = await crudInventur.getBySaisonId(saison.id);
 

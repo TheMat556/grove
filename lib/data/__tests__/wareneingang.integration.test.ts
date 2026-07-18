@@ -1,45 +1,12 @@
 // @vitest-environment node
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { produktInsertSchema } from "@/lib/schemas/produkt";
-import { saisonInsertSchema } from "@/lib/schemas/saison";
-import { standInsertSchema } from "@/lib/schemas/stand";
-import { standortInsertSchema } from "@/lib/schemas/standort";
+import { describe, expect, it } from "vitest";
 import { wareneingangInsertSchema } from "@/lib/schemas/wareneingang";
 import {
+	createFixtures,
 	createTestCrud,
-	createTestProfil,
-	deleteTestAuthUser,
 	getClient,
+	hasSupabase,
 } from "./test-utils";
-
-function uid() {
-	return Math.random().toString(36).slice(2, 8);
-}
-
-const crudSaison = createTestCrud({
-	table: "tb_saison",
-	insertSchema: saisonInsertSchema,
-	labels: { singular: "Saison", plural: "Saisons" },
-	orderBy: { column: "start_datum" },
-});
-
-const crudStandort = createTestCrud({
-	table: "tb_standort",
-	insertSchema: standortInsertSchema,
-	labels: { singular: "Standort", plural: "Standorte" },
-});
-
-const crudStand = createTestCrud({
-	table: "tb_stand",
-	insertSchema: standInsertSchema,
-	labels: { singular: "Stand", plural: "Stände" },
-});
-
-const crudProdukt = createTestCrud({
-	table: "tb_produkt",
-	insertSchema: produktInsertSchema,
-	labels: { singular: "Produkt", plural: "Produkte" },
-});
 
 const crudWareneingang = createTestCrud({
 	table: "tb_wareneingang",
@@ -47,122 +14,25 @@ const crudWareneingang = createTestCrud({
 	labels: { singular: "Wareneingang", plural: "Wareneingaenge" },
 });
 
-const createdWareneingangIds: string[] = [];
-const createdWareneingangspositionIds: string[] = [];
-const createdSaisonIds: string[] = [];
-const createdStandortIds: string[] = [];
-const createdStandIds: string[] = [];
-const createdProduktIds: string[] = [];
-const createdAuthUserIds: string[] = [];
-
-let sharedProfilId: string;
-
-beforeAll(async () => {
-	const profil = await createTestProfil();
-	sharedProfilId = profil.id;
-	createdAuthUserIds.push(profil.id);
-});
-
-afterAll(async () => {
-	if (createdWareneingangspositionIds.length > 0) {
-		await getClient()
-			.from("tb_wareneingangsposition")
-			.delete()
-			.in("id", createdWareneingangspositionIds);
-	}
-	if (createdWareneingangIds.length > 0) {
-		await getClient()
-			.from("tb_wareneingang")
-			.delete()
-			.in("id", createdWareneingangIds);
-	}
-	if (createdStandIds.length > 0) {
-		await getClient().from("tb_stand").delete().in("id", createdStandIds);
-	}
-	if (createdStandortIds.length > 0) {
-		await getClient().from("tb_standort").delete().in("id", createdStandortIds);
-	}
-	if (createdProduktIds.length > 0) {
-		await getClient().from("tb_produkt").delete().in("id", createdProduktIds);
-	}
-	if (createdSaisonIds.length > 0) {
-		await getClient().from("tb_saison").delete().in("id", createdSaisonIds);
-	}
-	for (const id of createdAuthUserIds) {
-		await deleteTestAuthUser(id);
-	}
-});
-
-async function createSaison(overrides: Partial<Record<string, unknown>> = {}) {
-	const saison = await crudSaison.create({
-		name: `test-${uid()}`,
-		start_datum: "2026-01-01",
-		end_datum: "2026-12-31",
-		...overrides,
-	});
-	createdSaisonIds.push(saison.id);
-	return saison;
-}
-
-async function createStandort(
-	overrides: Partial<Record<string, unknown>> = {},
-) {
-	const standort = await crudStandort.create({
-		ort: `test-${uid()}`,
-		plz: 1234,
-		adresse: `${uid()}-Straße 1`,
-		...overrides,
-	});
-	createdStandortIds.push(standort.id);
-	return standort;
-}
-
-async function createStand(overrides: Partial<Record<string, unknown>> = {}) {
-	const standort = await createStandort();
-	const stand = await crudStand.create({
-		bezeichnung: `test-${uid()}`,
-		standort_id: standort.id,
-		...overrides,
-	});
-	createdStandIds.push(stand.id);
-	return stand;
-}
-
-async function createProdukt(overrides: Partial<Record<string, unknown>> = {}) {
-	const produkt = await crudProdukt.create({
-		bezeichnung: `test-${uid()}`,
-		art: "Baum",
-		von_cm: 0,
-		bis_cm: 100,
-		...overrides,
-	});
-	createdProduktIds.push(produkt.id);
-	return produkt;
-}
-
-async function createProfil() {
-	return { id: sharedProfilId };
-}
+const fixtures = createFixtures();
 
 async function createWareneingang(
 	overrides: Partial<Record<string, unknown>> = {},
 ) {
-	const saison = await createSaison();
-	const stand = await createStand();
-	const profil = await createProfil();
+	const saison = await fixtures.createSaison();
+	const stand = await fixtures.createStand();
+	const profilId = await fixtures.getProfilId();
 
 	const we = await crudWareneingang.create({
 		saison_id: saison.id,
 		stand_id: stand.id,
-		erfasst_von: profil.id,
+		erfasst_von: profilId,
 		datum: "2026-06-15",
 		...overrides,
 	});
-	createdWareneingangIds.push(we.id);
+	fixtures.track("tb_wareneingang", we.id);
 	return we;
 }
-
-const hasSupabase = !!process.env.SUPABASE_TEST_URL;
 
 describe.skipIf(!hasSupabase)("tb_wareneingang CRUD", () => {
 	it("creates wareneingang with given datum", async () => {
@@ -202,25 +72,25 @@ describe.skipIf(!hasSupabase)("tb_wareneingang CRUD", () => {
 
 describe.skipIf(!hasSupabase)("tb_wareneingang by saison", () => {
 	it("filters wareneingaenge by saison_id", async () => {
-		const saison = await createSaison();
-		const stand = await createStand();
-		const profil = await createProfil();
+		const saison = await fixtures.createSaison();
+		const stand = await fixtures.createStand();
+		const profilId = await fixtures.getProfilId();
 
 		const w1 = await crudWareneingang.create({
 			saison_id: saison.id,
 			stand_id: stand.id,
-			erfasst_von: profil.id,
+			erfasst_von: profilId,
 			datum: "2026-06-15",
 		});
-		createdWareneingangIds.push(w1.id);
+		fixtures.track("tb_wareneingang", w1.id);
 
 		const w2 = await crudWareneingang.create({
 			saison_id: saison.id,
 			stand_id: stand.id,
-			erfasst_von: profil.id,
+			erfasst_von: profilId,
 			datum: "2026-07-01",
 		});
-		createdWareneingangIds.push(w2.id);
+		fixtures.track("tb_wareneingang", w2.id);
 
 		const data = await crudWareneingang.getBySaisonId(saison.id);
 
@@ -231,10 +101,10 @@ describe.skipIf(!hasSupabase)("tb_wareneingang by saison", () => {
 
 describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 	it("creates wareneingang with 2 positions atomically", async () => {
-		const saison = await createSaison();
-		const stand = await createStand();
-		const produkt = await createProdukt();
-		const profil = await createProfil();
+		const saison = await fixtures.createSaison();
+		const stand = await fixtures.createStand();
+		const produkt = await fixtures.createProdukt();
+		const profilId = await fixtures.getProfilId();
 
 		const { data, error } = await getClient().rpc(
 			"create_wareneingang_mit_positionen",
@@ -242,7 +112,7 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 				p_wareneingang: {
 					saison_id: saison.id,
 					stand_id: stand.id,
-					erfasst_von: profil.id,
+					erfasst_von: profilId,
 					datum: "2026-06-15",
 				},
 				p_positionen: [
@@ -279,17 +149,17 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 		expect(pos?.length).toBe(2);
 
 		// Cleanup
-		createdWareneingangIds.push(data!.id);
+		fixtures.track("tb_wareneingang", data!.id);
 		for (const p of pos || []) {
-			createdWareneingangspositionIds.push(p.id);
+			fixtures.track("tb_wareneingangsposition", p.id);
 		}
 	});
 
 	it("rolls back on invalid position (menge <= 0)", async () => {
-		const saison = await createSaison();
-		const stand = await createStand();
-		const produkt = await createProdukt();
-		const profil = await createProfil();
+		const saison = await fixtures.createSaison();
+		const stand = await fixtures.createStand();
+		const produkt = await fixtures.createProdukt();
+		const profilId = await fixtures.getProfilId();
 
 		const { data, error } = await getClient().rpc(
 			"create_wareneingang_mit_positionen",
@@ -297,7 +167,7 @@ describe.skipIf(!hasSupabase)("tb_wareneingang RPC", () => {
 				p_wareneingang: {
 					saison_id: saison.id,
 					stand_id: stand.id,
-					erfasst_von: profil.id,
+					erfasst_von: profilId,
 					datum: "2026-06-15",
 				},
 				p_positionen: [

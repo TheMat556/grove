@@ -1,11 +1,7 @@
 // @vitest-environment node
 import { afterAll, describe, expect, it } from "vitest";
 import { kundeInsertSchema } from "@/lib/schemas/kunde";
-import { createTestCrud, getClient } from "./test-utils";
-
-function uid() {
-	return Math.random().toString(36).slice(2, 8);
-}
+import { createTestCrud, getClient, hasSupabase, uid } from "./test-utils";
 
 const crud = createTestCrud({
 	table: "tb_kunde",
@@ -20,8 +16,6 @@ afterAll(async () => {
 		await getClient().from("tb_kunde").delete().in("id", createdIds);
 	}
 });
-
-const hasSupabase = !!process.env.SUPABASE_TEST_URL;
 
 describe.skipIf(!hasSupabase)("tb_kunde CRUD", () => {
 	it("creates kunde with ist_firma=false by default", async () => {
