@@ -39,7 +39,12 @@ jobs:
 
       - name: Load cached Docker images
         if: steps.cache-supabase.outputs.cache-hit == 'true'
-        run: docker load -i /tmp/supabase-docker/images.tar
+        run: |
+          if [ -f /tmp/supabase-docker/images.tar ]; then
+            docker load -i /tmp/supabase-docker/images.tar
+          else
+            echo "Cache hit but no images.tar found — skipping load"
+          fi
 
       - name: Start Supabase
         run: supabase start
@@ -48,7 +53,13 @@ jobs:
         if: steps.cache-supabase.outputs.cache-hit != 'true'
         run: |
           mkdir -p /tmp/supabase-docker
-          docker save $(docker images --filter=reference='supabase/*' --format '{{.Repository}}:{{.Tag}}') -o /tmp/supabase-docker/images.tar
+          IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -i supabase || true)
+          if [ -n "$IMAGES" ]; then
+            docker save $IMAGES -o /tmp/supabase-docker/images.tar
+            echo "Cached $(echo $IMAGES | wc -w) Supabase images"
+          else
+            echo "No Supabase images found to cache"
+          fi
 
       - name: Apply migrations
         run: supabase db reset
