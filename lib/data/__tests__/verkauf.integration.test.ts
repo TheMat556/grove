@@ -106,7 +106,7 @@ async function createSaison() {
 
 async function createStandort() {
 	const data = await crudStandort.create({
-		plz: 12345,
+		plz: 1234,
 		ort: `Testort-${uid()}`,
 		adresse: "Teststr. 1",
 	});

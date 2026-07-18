@@ -109,7 +109,7 @@ async function createStandort(
 ) {
 	const standort = await crudStandort.create({
 		ort: `test-${uid()}`,
-		plz: 12345,
+		plz: 1234,
 		adresse: `${uid()}-Straße 1`,
 		...overrides,
 	});
