@@ -28,7 +28,7 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-1          version: 2.109.1
+          version: 2.109.1
 
       - name: Cache Supabase Docker images
         id: cache-supabase
