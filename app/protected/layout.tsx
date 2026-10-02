@@ -27,6 +27,12 @@ export default function ProtectedLayout({
 							>
 								Standorte
 							</Link>
+							<Link
+								href="/protected/staende"
+								className="text-muted-foreground font-normal hover:underline"
+							>
+								Stände
+							</Link>
 						</div>
 						<Suspense>
 							<AuthButton />
