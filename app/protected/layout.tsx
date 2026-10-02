@@ -33,6 +33,12 @@ export default function ProtectedLayout({
 							>
 								Stände
 							</Link>
+							<Link
+								href="/protected/produkte"
+								className="text-muted-foreground font-normal hover:underline"
+							>
+								Produkte
+							</Link>
 						</div>
 						<Suspense>
 							<AuthButton />
