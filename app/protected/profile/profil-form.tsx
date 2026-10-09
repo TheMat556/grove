@@ -27,7 +27,7 @@ export function ProfilForm({ profil }: ProfilFormProps) {
 
 	return (
 		<form action={formAction} className="flex flex-col gap-4 max-w-md">
-			<input type="hidden" name="id" value={profil.id} />
+			<input type="hidden" name="id" defaultValue={profil.id} />
 
 			<div className="flex flex-col gap-1.5">
 				<Label htmlFor="name">Name</Label>

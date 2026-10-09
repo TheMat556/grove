@@ -39,8 +39,13 @@ export async function updateProfilAction(
 
 	try {
 		await updateProfil(id, parsed.data);
-	} catch {
-		return { message: "Profil konnte nicht aktualisiert werden." };
+	} catch (e) {
+		return {
+			message:
+				e instanceof Error
+					? e.message
+					: "Profil konnte nicht aktualisiert werden.",
+		};
 	}
 
 	revalidatePath("/protected/profile");
