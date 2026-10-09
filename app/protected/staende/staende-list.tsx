@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardDescription,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { getStaende } from "@/lib/data/stand";
 import { getStandorte } from "@/lib/data/standort";
+import { ConfirmDeleteForm } from "../_crud/confirm-delete-form";
 import { deleteStandAction } from "./actions";
 
 export async function StaendeList() {
@@ -31,7 +32,13 @@ export async function StaendeList() {
 		);
 	}
 
-	const standorte = await getStandorte();
+	// Fehlende Standorte dürfen die Stände-Liste nicht killen – Label fällt auf "–" zurück.
+	let standorte: Awaited<ReturnType<typeof getStandorte>>;
+	try {
+		standorte = await getStandorte();
+	} catch {
+		standorte = [];
+	}
 	const standortByStand = new Map(standorte.map((s) => [s.id, s]));
 
 	return (
@@ -53,12 +60,11 @@ export async function StaendeList() {
 							>
 								Bearbeiten
 							</Link>
-							<form action={deleteStandAction}>
-								<input type="hidden" name="id" value={stand.id} />
-								<Button variant="outline" size="sm" type="submit">
-									Löschen
-								</Button>
-							</form>
+							<ConfirmDeleteForm
+								action={deleteStandAction}
+								id={stand.id}
+								entity="Stand"
+							/>
 						</CardFooter>
 					</Card>
 				);

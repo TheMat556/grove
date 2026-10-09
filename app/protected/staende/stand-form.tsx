@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { getStandorte } from "@/lib/data/standort";
+import { selectClasses } from "../_crud/select-classes";
 import {
 	createStandAction,
 	type StandFormState,
@@ -41,7 +42,9 @@ export function StandForm({ mode, standorte, stand }: StandFormProps) {
 			action={formAction}
 			className="flex flex-col gap-4 max-w-md"
 		>
-			{mode === "edit" && <input type="hidden" name="id" value={stand?.id} />}
+			{mode === "edit" && (
+				<input type="hidden" name="id" defaultValue={stand?.id} />
+			)}
 
 			<div className="flex flex-col gap-1.5">
 				<Label htmlFor="bezeichnung">Bezeichnung</Label>
@@ -65,7 +68,7 @@ export function StandForm({ mode, standorte, stand }: StandFormProps) {
 					id="standort_id"
 					name="standort_id"
 					defaultValue={stand?.standort_id ?? ""}
-					className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
+					className={selectClasses}
 					aria-invalid={!!state.errors?.standort_id}
 				>
 					<option value="" disabled>
