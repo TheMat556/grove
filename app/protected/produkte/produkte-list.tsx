@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardDescription,
@@ -8,6 +8,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { getProdukte } from "@/lib/data/produkt";
+import { ConfirmDeleteForm } from "../_crud/confirm-delete-form";
 import { deleteProduktAction } from "./actions";
 
 export async function ProdukteList() {
@@ -47,12 +48,11 @@ export async function ProdukteList() {
 						>
 							Bearbeiten
 						</Link>
-						<form action={deleteProduktAction}>
-							<input type="hidden" name="id" value={produkt.id} />
-							<Button variant="outline" size="sm" type="submit">
-								Löschen
-							</Button>
-						</form>
+						<ConfirmDeleteForm
+							action={deleteProduktAction}
+							id={produkt.id}
+							entity="Produkt"
+						/>
 					</CardFooter>
 				</Card>
 			))}
