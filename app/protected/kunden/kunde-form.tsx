@@ -44,7 +44,9 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 			action={formAction}
 			className="flex flex-col gap-4 max-w-md"
 		>
-			{mode === "edit" && <input type="hidden" name="id" value={kunde?.id} />}
+			{mode === "edit" && (
+				<input type="hidden" name="id" defaultValue={kunde?.id} />
+			)}
 
 			<div className="flex flex-col gap-1.5">
 				<Label htmlFor="name">Name</Label>
