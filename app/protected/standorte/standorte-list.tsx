@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
 	CardDescription,
@@ -8,6 +8,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { getStandorte } from "@/lib/data/standort";
+import { ConfirmDeleteForm } from "../_crud/confirm-delete-form";
 import { deleteStandortAction } from "./actions";
 
 export async function StandorteList() {
@@ -47,12 +48,11 @@ export async function StandorteList() {
 						>
 							Bearbeiten
 						</Link>
-						<form action={deleteStandortAction}>
-							<input type="hidden" name="id" value={standort.id} />
-							<Button variant="outline" size="sm" type="submit">
-								Löschen
-							</Button>
-						</form>
+						<ConfirmDeleteForm
+							action={deleteStandortAction}
+							id={standort.id}
+							entity="Standort"
+						/>
 					</CardFooter>
 				</Card>
 			))}

@@ -38,7 +38,7 @@ export function StandortForm({ mode, standort }: StandortFormProps) {
 			className="flex flex-col gap-4 max-w-md"
 		>
 			{mode === "edit" && (
-				<input type="hidden" name="id" value={standort?.id} />
+				<input type="hidden" name="id" defaultValue={standort?.id} />
 			)}
 
 			<div className="flex flex-col gap-1.5">
