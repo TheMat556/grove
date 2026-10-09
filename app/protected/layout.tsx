@@ -45,6 +45,12 @@ export default function ProtectedLayout({
 							>
 								Kunden
 							</Link>
+							<Link
+								href="/protected/profile"
+								className="text-muted-foreground font-normal hover:underline"
+							>
+								Profile
+							</Link>
 						</div>
 						<Suspense>
 							<AuthButton />
