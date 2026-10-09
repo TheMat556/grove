@@ -1,6 +1,13 @@
 import Link from "next/link";
 
-const links = [{ href: "/protected/saisons", label: "Saisons" }];
+const links = [
+	{ href: "/protected/saisons", label: "Saisons" },
+	{ href: "/protected/standorte", label: "Standorte" },
+	{ href: "/protected/staende", label: "Stände" },
+	{ href: "/protected/produkte", label: "Produkte" },
+	{ href: "/protected/kunden", label: "Kunden" },
+	{ href: "/protected/profile", label: "Profile" },
+];
 
 export default function ProtectedPage() {
 	return (
