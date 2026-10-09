@@ -21,6 +21,12 @@ export default function ProtectedLayout({
 							>
 								Saisons
 							</Link>
+							<Link
+								href="/protected/standorte"
+								className="text-muted-foreground font-normal hover:underline"
+							>
+								Standorte
+							</Link>
 						</div>
 						<Suspense>
 							<AuthButton />
