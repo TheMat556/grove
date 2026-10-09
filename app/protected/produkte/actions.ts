@@ -5,7 +5,10 @@ import {
 	deleteProdukt,
 	updateProdukt,
 } from "@/lib/data/produkt";
-import { produktCreateSchema } from "@/lib/schemas/produkt";
+import {
+	produktInsertSchema,
+	produktCreateSchema,
+} from "@/lib/schemas/produkt";
 import {
 	createEntityActions,
 	type EntityFormState,
@@ -38,7 +41,9 @@ const {
 	updateAction: updateProduktAction,
 	deleteAction: deleteProduktAction,
 } = createEntityActions({
-	insertSchema: produktCreateSchema,
+	insertSchema: produktInsertSchema,
+	createSchema: produktCreateSchema,
+	updateSchema: produktCreateSchema,
 	mapInput: produktFormValues,
 	create: createProdukt,
 	update: updateProdukt,
