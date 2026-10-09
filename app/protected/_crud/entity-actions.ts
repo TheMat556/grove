@@ -24,6 +24,12 @@ type EntityActionsConfig<T> = {
 	 * (z. B. produktCreateSchema). Ohne Angabe wird insertSchema verwendet.
 	 */
 	createSchema?: ZodType<T>;
+	/**
+	 * Optionales Schema für update(). Nötig bei feldübergreifenden Regeln, die
+	 * auch beim Update greifen sollen (z. B. bis_cm >= von_cm bei Produkten).
+	 * Ohne Angabe wird insertSchema verwendet.
+	 */
+	updateSchema?: ZodType<T>;
 	/** FormData → Eingabeobjekt. Feld-Parsing bleibt entity-spezifisch. */
 	mapInput: (formData: FormData) => unknown;
 	create: (input: T) => Promise<unknown>;
@@ -53,6 +59,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 	const {
 		insertSchema,
 		createSchema,
+		updateSchema,
 		mapInput,
 		create,
 		update,
@@ -99,7 +106,9 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 				};
 			}
 
-			const parsed = insertSchema.safeParse(mapInput(formData));
+			const parsed = (updateSchema ?? insertSchema).safeParse(
+				mapInput(formData),
+			);
 
 			if (!parsed.success) {
 				return { errors: toFieldErrors(parsed.error) };

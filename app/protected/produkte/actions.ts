@@ -16,6 +16,18 @@ import {
 
 export type ProduktFormState = EntityFormState;
 
+/**
+ * Die CHECK-Regel bis_cm >= von_cm gilt auch beim Update – sonst landen
+ * ungültige Bereiche als roher Postgres-Fehler in der Error-Boundary.
+ */
+const produktUpdateSchema = produktInsertSchema.refine(
+	(werte) => werte.bis_cm >= werte.von_cm,
+	{
+		message: "bis_cm darf nicht kleiner als von_cm sein.",
+		path: ["bis_cm"],
+	},
+);
+
 const {
 	createAction: createProduktAction,
 	updateAction: updateProduktAction,
@@ -23,6 +35,7 @@ const {
 } = createEntityActions({
 	insertSchema: produktInsertSchema,
 	createSchema: produktCreateSchema,
+	updateSchema: produktUpdateSchema,
 	mapInput: (formData) => ({
 		art: formData.get("art"),
 		bezeichnung: formData.get("bezeichnung"),
