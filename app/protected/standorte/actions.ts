@@ -97,7 +97,14 @@ export async function deleteStandortAction(formData: FormData) {
 		return;
 	}
 
-	// ponytail: FK-Fehler beim Löschen landen vorerst in der Error-Boundary; Inline-Feedback erst bei echtem Nutzerbedarf
-	await deleteStandort(id);
+	try {
+		await deleteStandort(id);
+	} catch (e) {
+		// ponytail: FK-Fehler (Standort wird von tb_stand referenziert) landen als Nachricht auf der Liste
+		const msg =
+			e instanceof Error ? e.message : "Standort konnte nicht gelöscht werden.";
+		redirect(`/protected/standorte?error=${encodeURIComponent(msg)}`);
+	}
+
 	revalidatePath("/protected/standorte");
 }
