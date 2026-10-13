@@ -104,7 +104,14 @@ export async function deleteProduktAction(formData: FormData) {
 		return;
 	}
 
-	// ponytail: FK-Fehler beim Löschen landen vorerst in der Error-Boundary; Inline-Feedback erst bei echtem Nutzerbedarf
-	await deleteProdukt(id);
+	try {
+		await deleteProdukt(id);
+	} catch (e) {
+		// ponytail: FK-Fehler (Produkt wird von tb_position referenziert) landen als Nachricht auf der Liste
+		const msg =
+			e instanceof Error ? e.message : "Produkt konnte nicht gelöscht werden.";
+		redirect(`/protected/produkte?error=${encodeURIComponent(msg)}`);
+	}
+
 	revalidatePath("/protected/produkte");
 }
