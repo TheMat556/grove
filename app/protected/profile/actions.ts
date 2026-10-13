@@ -1,53 +1,42 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { updateProfil } from "@/lib/data/profil";
+import { getCurrentProfil } from "@/lib/data/session";
 import { profilInsertSchema } from "@/lib/schemas/profil";
-import type { EntityFormState } from "../_crud/entity-actions";
+import {
+	createEntityActions,
+	type EntityFormState,
+} from "../_crud/entity-actions";
 
 export type ProfilFormState = EntityFormState;
 
 /**
- * Server Action: validiert die Formulardaten, aktualisiert das Profil
- * und leitet zurück zur Übersicht. Die Rolle ist read-only und wird
- * bewusst nicht aus dem Formular übernommen (tb_profil.id == auth.users.id,
- * kein Create/Delete).
+ * Die Rolle ist read-only und wird bewusst nicht aus dem Formular übernommen
+ * (tb_profil.id == auth.users.id, kein Create/Delete – deshalb nur der
+ * update-Baustein aus der Factory).
  */
-export async function updateProfilAction(
-	_prevState: ProfilFormState,
-	formData: FormData,
-): Promise<ProfilFormState> {
-	const id = formData.get("id");
-	if (typeof id !== "string" || !id) {
-		return { message: "Profil konnte nicht aktualisiert werden." };
-	}
+const profilUpdateSchema = profilInsertSchema
+	.partial()
+	.pick({ name: true, telefon: true, aktiv: true });
 
-	// Nur die editierbaren Felder validieren; leeres Telefon -> null.
-	const parsed = profilInsertSchema
-		.partial()
-		.pick({ name: true, telefon: true, aktiv: true })
-		.safeParse({
-			name: formData.get("name"),
-			telefon: formData.get("telefon") || null,
-			aktiv: formData.get("aktiv") === "on",
-		});
+const { updateAction: updateProfilAction } = createEntityActions({
+	insertSchema: profilInsertSchema,
+	updateSchema: profilUpdateSchema,
+	mapInput: (formData) => ({
+		name: formData.get("name"),
+		telefon: formData.get("telefon") || null,
+		aktiv: formData.get("aktiv") === "on",
+	}),
+	// Profilzeilen sind User-Konten: Admins dürfen alles, Mitarbeitende nur sich selbst.
+	update: async (id, input) => {
+		const current = await getCurrentProfil();
+		if (current.rolle !== "admin" && current.id !== id) {
+			throw new Error("Keine Berechtigung.");
+		}
+		return updateProfil(id, input);
+	},
+	labels: { singular: "Profil" },
+	revalidatePath: "/protected/profile",
+});
 
-	if (!parsed.success) {
-		return { errors: parsed.error.flatten().fieldErrors };
-	}
-
-	try {
-		await updateProfil(id, parsed.data);
-	} catch (e) {
-		return {
-			message:
-				e instanceof Error
-					? e.message
-					: "Profil konnte nicht aktualisiert werden.",
-		};
-	}
-
-	revalidatePath("/protected/profile");
-	redirect("/protected/profile");
-}
+export { updateProfilAction };
