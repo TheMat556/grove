@@ -7,10 +7,7 @@ import {
 	deleteProdukt,
 	updateProdukt,
 } from "@/lib/data/produkt";
-import {
-	produktCreateSchema,
-	produktInsertSchema,
-} from "@/lib/schemas/produkt";
+import { produktCreateSchema } from "@/lib/schemas/produkt";
 
 export type ProduktFormState = {
 	errors?: Record<string, string[]>;
@@ -24,16 +21,28 @@ export type ProduktFormState = {
  * und lädt die Seite neu. Feldfehler werden strukturiert an das Formular
  * zurückgegeben.
  */
+
+/** FormData-Wert in Zahl oder undefined (leer/fehlerhaft) umwandeln – nie 0 als Default. */
+function zumNumber(wert: FormDataEntryValue | null): number | undefined {
+	if (wert === null || wert === "") return undefined;
+	const zahl = Number(wert);
+	return Number.isNaN(zahl) ? undefined : zahl;
+}
+
+function produktFormValues(formData: FormData) {
+	return {
+		art: formData.get("art"),
+		bezeichnung: formData.get("bezeichnung"),
+		von_cm: zumNumber(formData.get("von_cm")),
+		bis_cm: zumNumber(formData.get("bis_cm")),
+	};
+}
+
 export async function createProduktAction(
 	_prevState: ProduktFormState,
 	formData: FormData,
 ): Promise<ProduktFormState> {
-	const parsed = produktCreateSchema.safeParse({
-		art: formData.get("art"),
-		bezeichnung: formData.get("bezeichnung"),
-		von_cm: Number(formData.get("von_cm")),
-		bis_cm: Number(formData.get("bis_cm")),
-	});
+	const parsed = produktCreateSchema.safeParse(produktFormValues(formData));
 
 	if (!parsed.success) {
 		return { errors: parsed.error.flatten().fieldErrors };
@@ -55,9 +64,10 @@ export async function createProduktAction(
 }
 
 /**
- * Server Action: validiert die Formulardaten gegen das Insert-Schema
- * (ohne feldübergreifende Regel, spiegelt das DB-CHECK-Verhalten beim
- * Anlegen), aktualisiert das Produkt und leitet zurück zur Übersicht.
+ * Server Action: validiert die Formulardaten gegen das Create-Schema
+ * (das DB-CHECK-Constraint bis_cm >= von_cm gilt auch beim Aktualisieren,
+ * nicht nur beim Anlegen), aktualisiert das Produkt und leitet zurück
+ * zur Übersicht.
  */
 export async function updateProduktAction(
 	_prevState: ProduktFormState,
@@ -68,12 +78,7 @@ export async function updateProduktAction(
 		return { message: "Produkt konnte nicht aktualisiert werden." };
 	}
 
-	const parsed = produktInsertSchema.safeParse({
-		art: formData.get("art"),
-		bezeichnung: formData.get("bezeichnung"),
-		von_cm: Number(formData.get("von_cm")),
-		bis_cm: Number(formData.get("bis_cm")),
-	});
+	const parsed = produktCreateSchema.safeParse(produktFormValues(formData));
 
 	if (!parsed.success) {
 		return { errors: parsed.error.flatten().fieldErrors };
@@ -104,10 +109,10 @@ export async function deleteProduktAction(formData: FormData) {
 		return;
 	}
 
+	// ponytail: FK-Fehler (Produkt wird von tb_position referenziert) landen als Nachricht auf der Liste
 	try {
 		await deleteProdukt(id);
 	} catch (e) {
-		// ponytail: FK-Fehler (Produkt wird von tb_position referenziert) landen als Nachricht auf der Liste
 		const msg =
 			e instanceof Error ? e.message : "Produkt konnte nicht gelöscht werden.";
 		redirect(`/protected/produkte?error=${encodeURIComponent(msg)}`);
