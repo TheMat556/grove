@@ -9,10 +9,12 @@ vi.mock("next/navigation", () => ({ redirect: vi.fn() }));
 vi.mock("@/lib/data/kunde", () => ({
 	createKunde: vi.fn().mockResolvedValue({}),
 	updateKunde: vi.fn().mockResolvedValue({}),
+	deleteKunde: vi.fn().mockResolvedValue(undefined),
 }));
 vi.mock("@/lib/data/produkt", () => ({
 	createProdukt: vi.fn().mockResolvedValue({}),
 	updateProdukt: vi.fn().mockResolvedValue({}),
+	deleteProdukt: vi.fn().mockResolvedValue(undefined),
 }));
 
 import {
