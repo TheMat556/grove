@@ -37,6 +37,8 @@ const {
 	remove: deleteProdukt,
 	labels: { singular: "Produkt" },
 	revalidatePath: "/protected/produkte",
+	// Fehler bei Produkt-Löschen (z. B. FK durch Positionen) als Banner auf der Liste.
+	removeErrorPath: "/protected/produkte",
 });
 
 export { createProduktAction, deleteProduktAction, updateProduktAction };

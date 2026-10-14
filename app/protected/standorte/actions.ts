@@ -30,6 +30,8 @@ const {
 	remove: deleteStandort,
 	labels: { singular: "Standort" },
 	revalidatePath: "/protected/standorte",
+	// Standort wird von tb_stand referenziert – FK-Fehler als Banner auf der Liste
+	removeErrorPath: "/protected/standorte",
 });
 
 export { createStandortAction, deleteStandortAction, updateStandortAction };

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getStandort } from "@/lib/data/standort";
+import { uuidSchema } from "@/lib/schemas/common";
 import { StandortForm } from "../standort-form";
 
 export default function StandortEditPage({
@@ -23,6 +24,9 @@ export default function StandortEditPage({
 
 async function StandortEdit({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
+	if (!uuidSchema.safeParse(id).success) {
+		notFound();
+	}
 	const standort = await getStandort(id);
 
 	if (!standort) {

@@ -45,6 +45,12 @@ type EntityActionsConfig<T> = {
 	remove?: (id: string) => Promise<void>;
 	labels: { singular: string };
 	revalidatePath: string;
+	/**
+	 * Optionaler Pfad für FK-Fehler beim Löschen: Wenn gesetzt, landen Fehler
+	 * (z. B. Referenz durch tb_position) als ?error=…-Banner auf der Liste;
+	 * sonst in der Error-Boundary.
+	 */
+	removeErrorPath?: string;
 };
 
 /**
@@ -76,6 +82,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 		remove,
 		labels,
 		revalidatePath: revalidatePathValue,
+		removeErrorPath,
 	} = config;
 
 	return {
@@ -155,8 +162,18 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 				return;
 			}
 
-			// ponytail: FK-Fehler beim Löschen landen vorerst in der Error-Boundary; Inline-Feedback erst bei echtem Nutzerbedarf
-			await remove(id);
+			// ponytail: ohne removeErrorPath landen FK-Fehler in der Error-Boundary; Inline-Feedback erst bei echtem Nutzerbedarf
+			try {
+				await remove(id);
+			} catch (e) {
+				if (!removeErrorPath) throw e;
+				const msg =
+					e instanceof Error
+						? e.message
+						: `${labels.singular} konnte nicht gelöscht werden.`;
+				redirect(`${removeErrorPath}?error=${encodeURIComponent(msg)}`);
+			}
+
 			revalidatePath(revalidatePathValue);
 		},
 	};

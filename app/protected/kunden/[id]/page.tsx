@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getKunde } from "@/lib/data/kunde";
+import { uuidSchema } from "@/lib/schemas/common";
 import { KundeForm } from "../kunde-form";
 
 export default function KundeEditPage({
@@ -21,6 +22,9 @@ export default function KundeEditPage({
 
 async function KundeEdit({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
+	if (!uuidSchema.safeParse(id).success) {
+		notFound();
+	}
 	const kunde = await getKunde(id);
 
 	if (!kunde) {

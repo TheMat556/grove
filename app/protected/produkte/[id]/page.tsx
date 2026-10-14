@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getProdukt } from "@/lib/data/produkt";
+import { uuidSchema } from "@/lib/schemas/common";
 import { ProduktForm } from "../produkt-form";
 
 export default function ProduktEditPage({
@@ -23,6 +24,9 @@ export default function ProduktEditPage({
 
 async function ProduktEdit({ params }: { params: Promise<{ id: string }> }) {
 	const { id } = await params;
+	if (!uuidSchema.safeParse(id).success) {
+		notFound();
+	}
 	const produkt = await getProdukt(id);
 
 	if (!produkt) {

@@ -5,7 +5,6 @@ export const produktSchema = z.object({
 	id: uuidSchema,
 	art: z.enum(["Baum", "Kreuz"]),
 	bezeichnung: z.string().min(1, "Bezeichnung erforderlich!"),
-	// Coerce: Formular liefert Strings; leeres Feld -> 0 respektive NaN -> min(1)/int meldet Feldfehler statt stiller 0-Wert.
 	von_cm: z.coerce.number().int().min(1, "Größe von ist erforderlich."),
 	bis_cm: z.coerce.number().int().min(1, "Größe bis ist erforderlich."),
 });

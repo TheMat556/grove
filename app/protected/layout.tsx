@@ -15,16 +15,14 @@ export default function ProtectedLayout({
 					<div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
 						<div className="flex gap-5 items-center font-semibold">
 							<Link href="/protected">Grove</Link>
-							{(
-								[
-									["Saisons", "/protected/saisons"],
-									["Standorte", "/protected/standorte"],
-									["Stände", "/protected/staende"],
-									["Produkte", "/protected/produkte"],
-									["Kunden", "/protected/kunden"],
-									["Profile", "/protected/profile"],
-								] as const
-							).map(([label, href]) => (
+							{[
+								["/protected/saisons", "Saisons"],
+								["/protected/standorte", "Standorte"],
+								["/protected/staende", "Stände"],
+								["/protected/produkte", "Produkte"],
+								["/protected/kunden", "Kunden"],
+								["/protected/profile", "Profile"],
+							].map(([href, label]) => (
 								<Link
 									key={href}
 									href={href}
