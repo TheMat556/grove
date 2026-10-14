@@ -91,6 +91,7 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 					name="von_cm"
 					type="number"
 					min={0}
+					required
 					placeholder="100"
 					defaultValue={produkt?.von_cm}
 					aria-invalid={!!state.errors?.von_cm}
@@ -107,6 +108,7 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 					name="bis_cm"
 					type="number"
 					min={0}
+					required
 					placeholder="200"
 					defaultValue={produkt?.bis_cm}
 					aria-invalid={!!state.errors?.bis_cm}

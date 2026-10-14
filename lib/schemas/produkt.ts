@@ -5,8 +5,10 @@ export const produktSchema = z.object({
 	id: uuidSchema,
 	art: z.enum(["Baum", "Kreuz"]),
 	bezeichnung: z.string().min(1, "Bezeichnung erforderlich!"),
-	von_cm: z.number().nonnegative(),
-	bis_cm: z.number().nonnegative(),
+	// Eigene Fehlermeldung, damit fehlende Formularwerte (undefined) nicht als
+	// kryptischer Typfehler landen.
+	von_cm: z.number("Größe von (cm) ist erforderlich.").nonnegative(),
+	bis_cm: z.number("Größe bis (cm) ist erforderlich.").nonnegative(),
 });
 
 /**
