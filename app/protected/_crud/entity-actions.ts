@@ -151,9 +151,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 					e instanceof Error
 						? e.message
 						: `${labels.singular} konnte nicht gelöscht werden.`;
-				redirect(
-					`${removeErrorPath}?error=${encodeURIComponent(msg)}`,
-				);
+				redirect(`${removeErrorPath}?error=${encodeURIComponent(msg)}`);
 			}
 
 			revalidatePath(revalidatePathValue);
