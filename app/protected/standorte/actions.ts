@@ -20,7 +20,8 @@ const {
 } = createEntityActions({
 	insertSchema: standortInsertSchema,
 	mapInput: (formData) => ({
-		plz: Number(formData.get("plz")),
+		// Roher String; z.coerce im Schema parst (leeres Feld -> Feldfehler).
+		plz: formData.get("plz"),
 		ort: formData.get("ort"),
 		adresse: formData.get("adresse"),
 	}),

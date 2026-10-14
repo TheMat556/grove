@@ -3,7 +3,8 @@ import { uuidSchema } from "@/lib/schemas/common";
 
 export const standortSchema = z.object({
 	id: uuidSchema,
-	plz: z.number().int().min(1000).max(9999),
+	// Coerce: das Formular liefert Strings; leeres Feld -> 0 -> min/max meldet Feldfehler statt stiller 0-Wert.
+	plz: z.coerce.number().int().min(1000).max(9999),
 	ort: z.string().min(1, "Ort ist erforderlich."),
 	adresse: z.string().min(1, "Adresse ist erforderlich."),
 });
