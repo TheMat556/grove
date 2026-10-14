@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { Kunde } from "@/lib/schemas/kunde";
 import {
 	createKundeAction,
 	type KundeFormState,
@@ -15,13 +16,7 @@ const initialState: KundeFormState = {};
 
 type KundeFormProps = {
 	mode: "create" | "edit";
-	kunde?: {
-		id: string;
-		name: string;
-		telefon: string;
-		adresse: string;
-		ist_firma: boolean;
-	};
+	kunde?: Kunde;
 };
 
 export function KundeForm({ mode, kunde }: KundeFormProps) {
