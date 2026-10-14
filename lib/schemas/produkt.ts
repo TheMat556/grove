@@ -5,10 +5,8 @@ export const produktSchema = z.object({
 	id: uuidSchema,
 	art: z.enum(["Baum", "Kreuz"]),
 	bezeichnung: z.string().min(1, "Bezeichnung erforderlich!"),
-	// Eigene Fehlermeldung, damit fehlende Formularwerte (undefined) nicht als
-	// kryptischer Typfehler landen.
-	von_cm: z.number("Größe von (cm) ist erforderlich.").nonnegative(),
-	bis_cm: z.number("Größe bis (cm) ist erforderlich.").nonnegative(),
+	von_cm: z.coerce.number().int().min(1, "Größe von ist erforderlich."),
+	bis_cm: z.coerce.number().int().min(1, "Größe bis ist erforderlich."),
 });
 
 /**
@@ -28,6 +26,12 @@ export const produktCreateSchema = produktInsertSchema.refine(
 		path: ["bis_cm"],
 	},
 );
+
+/**
+ * Update: dieselbe CHECK-Regel wie beim Anlegen (gleiche Begründung, eine
+ * einzige Heimat für die Regel – die actions-Datei importiert dieses Schema).
+ */
+export const produktUpdateSchema = produktCreateSchema;
 
 export type Produkt = z.infer<typeof produktSchema>;
 export type ProduktInsert = z.infer<typeof produktInsertSchema>;

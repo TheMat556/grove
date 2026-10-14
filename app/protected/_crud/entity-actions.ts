@@ -32,9 +32,17 @@ type EntityActionsConfig<T> = {
 	updateSchema?: ZodType<T>;
 	/** FormData → Eingabeobjekt. Feld-Parsing bleibt entity-spezifisch. */
 	mapInput: (formData: FormData) => unknown;
-	create: (input: T) => Promise<unknown>;
+	/**
+	 * Optional: Entitäten ohne Create (z. B. Profil, tb_profil.id == auth.users.id)
+	 * lassen create() weg und exportieren createAction nicht.
+	 */
+	create?: (input: T) => Promise<unknown>;
 	update: (id: string, input: Partial<T>) => Promise<unknown>;
-	remove: (id: string) => Promise<void>;
+	/**
+	 * Optional: Entitäten ohne Delete (z. B. Profil) lassen remove() weg und
+	 * exportieren deleteAction nicht.
+	 */
+	remove?: (id: string) => Promise<void>;
 	labels: { singular: string };
 	revalidatePath: string;
 	/**
@@ -56,10 +64,12 @@ function toFieldErrors(error: ZodError): Record<string, string[]> {
 }
 
 /**
- * Baut die drei mechanischen Server-Action-Bausteine für ein CRUD-Entity:
- * createAction, updateAction und deleteAction. Die Logik ist identisch mit
- * der bisherigen pro-Entity-Duplikation – nur der Unterschied (Schema(s),
- * Daten-Funktionen, FormData-Mapping, Labels, Pfad) kommt aus der Config.
+ * Baut die mechanischen Server-Action-Bausteine für ein CRUD-Entity:
+ * createAction, updateAction und deleteAction. create() und remove() sind
+ * optional – ohne sie wird der jeweilige Baustein nicht gebaut bzw. lehnt
+ * mit einer Meldung ab. Die Logik ist identisch mit der bisherigen
+ * pro-Entity-Duplikation – nur der Unterschied (Schema(s), Daten-Funktionen,
+ * FormData-Mapping, Labels, Pfad) kommt aus der Config.
  */
 export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 	const {
@@ -80,6 +90,12 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 			_prevState: EntityFormState,
 			formData: FormData,
 		): Promise<EntityFormState> => {
+			if (!create) {
+				return {
+					message: `${labels.singular} kann nicht angelegt werden.`,
+				};
+			}
+
 			const schema = createSchema ?? insertSchema;
 			const parsed = schema.safeParse(mapInput(formData));
 
@@ -137,6 +153,10 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 		},
 
 		deleteAction: async (formData: FormData): Promise<void> => {
+			if (!remove) {
+				return;
+			}
+
 			const id = formData.get("id");
 			if (typeof id !== "string" || !id) {
 				return;
