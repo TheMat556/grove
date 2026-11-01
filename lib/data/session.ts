@@ -20,6 +20,16 @@ export const getCurrentProfilId = cache(async (): Promise<string> => {
 });
 
 /**
+ * Liefert die E-Mail des aktuellen auth.users-Benutzers.
+ * Pro Request memoisiert (React cache).
+ */
+export const getCurrentProfilEmail = cache(async (): Promise<string> => {
+	const supabase = await createClient();
+	const { data } = await supabase.auth.getUser();
+	return data.user?.email ?? "";
+});
+
+/**
  * Liefert das vollständige tb_profil des aktuellen Benutzers.
  * Pro Request memoisiert (React cache).
  */

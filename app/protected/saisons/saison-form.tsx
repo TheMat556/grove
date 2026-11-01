@@ -4,36 +4,48 @@ import { useActionState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createSaisonAction, type SaisonFormState } from "./actions";
+import type { Saison } from "@/lib/schemas/saison";
+import {
+	createSaisonAction,
+	type SaisonFormState,
+	updateSaisonAction,
+} from "./actions";
+import { DatePicker } from "./date-picker";
 
 const initialState: SaisonFormState = {};
 
-export function SaisonForm() {
+type SaisonFormProps = {
+	mode: "create" | "edit";
+	saison?: Saison;
+	onSuccess?: () => void;
+};
+
+export function SaisonForm({ mode, saison, onSuccess }: SaisonFormProps) {
 	const [state, formAction, isPending] = useActionState(
-		createSaisonAction,
+		mode === "create" ? createSaisonAction : updateSaisonAction,
 		initialState,
 	);
 	const formRef = useRef<HTMLFormElement>(null);
 
-	// Nach erfolgreichem Anlegen das Formular zurücksetzen.
 	useEffect(() => {
-		if (state.success) {
-			formRef.current?.reset();
-		}
-	}, [state.success]);
+		if (!state.success) return;
+		formRef.current?.reset();
+		onSuccess?.();
+	}, [state.success, onSuccess]);
 
 	return (
-		<form
-			ref={formRef}
-			action={formAction}
-			className="flex flex-col gap-4 max-w-md"
-		>
+		<form ref={formRef} action={formAction} className="flex flex-col gap-4">
+			{mode === "edit" && (
+				<input type="hidden" name="id" defaultValue={saison?.id} />
+			)}
+
 			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="name">Name</Label>
+				<Label htmlFor={`${mode}-name`}>Name</Label>
 				<Input
-					id="name"
+					id={`${mode}-name`}
 					name="name"
 					placeholder="z. B. Winter 2026"
+					defaultValue={saison?.name}
 					aria-invalid={!!state.errors?.name}
 				/>
 				{state.errors?.name && (
@@ -41,34 +53,36 @@ export function SaisonForm() {
 				)}
 			</div>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="start_datum">Startdatum</Label>
-				<Input
-					id="start_datum"
-					name="start_datum"
-					type="date"
-					aria-invalid={!!state.errors?.start_datum}
-				/>
-				{state.errors?.start_datum && (
-					<p className="text-sm text-destructive">
-						{state.errors.start_datum[0]}
-					</p>
-				)}
-			</div>
+			<div className="grid grid-cols-2 gap-3">
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor={`${mode}-start_datum`}>Startdatum</Label>
+					<DatePicker
+						id={`${mode}-start_datum`}
+						name="start_datum"
+						defaultValue={saison?.start_datum}
+						invalid={!!state.errors?.start_datum}
+					/>
+					{state.errors?.start_datum && (
+						<p className="text-sm text-destructive">
+							{state.errors.start_datum[0]}
+						</p>
+					)}
+				</div>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="end_datum">Enddatum</Label>
-				<Input
-					id="end_datum"
-					name="end_datum"
-					type="date"
-					aria-invalid={!!state.errors?.end_datum}
-				/>
-				{state.errors?.end_datum && (
-					<p className="text-sm text-destructive">
-						{state.errors.end_datum[0]}
-					</p>
-				)}
+				<div className="flex flex-col gap-1.5">
+					<Label htmlFor={`${mode}-end_datum`}>Enddatum</Label>
+					<DatePicker
+						id={`${mode}-end_datum`}
+						name="end_datum"
+						defaultValue={saison?.end_datum}
+						invalid={!!state.errors?.end_datum}
+					/>
+					{state.errors?.end_datum && (
+						<p className="text-sm text-destructive">
+							{state.errors.end_datum[0]}
+						</p>
+					)}
+				</div>
 			</div>
 
 			{state.message && (
@@ -76,7 +90,11 @@ export function SaisonForm() {
 			)}
 
 			<Button type="submit" disabled={isPending} className="self-start">
-				{isPending ? "Speichern…" : "Saison anlegen"}
+				{isPending
+					? "Speichern…"
+					: mode === "create"
+						? "Saison anlegen"
+						: "Änderungen speichern"}
 			</Button>
 		</form>
 	);
