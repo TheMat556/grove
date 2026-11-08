@@ -28,6 +28,7 @@ type ProduktFormProps = {
 	onSuccess?: () => void;
 };
 
+/** Formular für ein Produkt; meldet Erfolg an den umgebenden Dialog. */
 export function ProduktForm({ mode, produkt, onSuccess }: ProduktFormProps) {
 	const [state, formAction, isPending] = useActionState(
 		mode === "create" ? createProduktAction : updateProduktAction,

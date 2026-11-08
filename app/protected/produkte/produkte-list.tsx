@@ -14,6 +14,7 @@ import { ConfirmDeleteForm } from "../_crud/confirm-delete-form";
 import { deleteProduktAction } from "./actions";
 import { ProduktDialog } from "./produkt-dialog";
 
+/** Produktliste als Tabelle mit Bearbeiten-Dialog und Löschen je Zeile. */
 export async function ProdukteList() {
 	let produkte: Awaited<ReturnType<typeof getProdukte>>;
 	try {

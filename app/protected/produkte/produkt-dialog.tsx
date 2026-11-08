@@ -17,6 +17,7 @@ type ProduktDialogProps = {
 	trigger: ReactElement;
 };
 
+/** Dialog zum Anlegen oder Bearbeiten eines Produkts; schließt nach Erfolg. */
 export function ProduktDialog({ mode, produkt, trigger }: ProduktDialogProps) {
 	const [open, setOpen] = useState(false);
 	// Stabil halten: sonst re-triggert das Success-State des Formulars den Effect.

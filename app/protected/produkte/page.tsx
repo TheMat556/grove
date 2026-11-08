@@ -20,6 +20,7 @@ async function ErrorBanner({
 	);
 }
 
+/** Produkte-Seite: Kopfzeile mit Anlegen-Dialog, darunter die Produktliste. */
 export default function ProduktePage({
 	searchParams,
 }: {
