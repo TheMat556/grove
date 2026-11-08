@@ -14,45 +14,44 @@ import {
 
 const initialState: ProduktFormState = {};
 
-type ProduktFormProps = {
-	mode: "create" | "edit";
-	produkt?: {
-		id: string;
-		art: string;
-		bezeichnung: string;
-		von_cm: number;
-		bis_cm: number;
-	};
+export type ProduktFormValues = {
+	id: string;
+	art: string;
+	bezeichnung: string;
+	von_cm: number;
+	bis_cm: number;
 };
 
-export function ProduktForm({ mode, produkt }: ProduktFormProps) {
+type ProduktFormProps = {
+	mode: "create" | "edit";
+	produkt?: ProduktFormValues;
+	onSuccess?: () => void;
+};
+
+/** Formular für ein Produkt; meldet Erfolg an den umgebenden Dialog. */
+export function ProduktForm({ mode, produkt, onSuccess }: ProduktFormProps) {
 	const [state, formAction, isPending] = useActionState(
 		mode === "create" ? createProduktAction : updateProduktAction,
 		initialState,
 	);
 	const formRef = useRef<HTMLFormElement>(null);
 
-	// Nach erfolgreichem Anlegen das Formular zurücksetzen (nur im Create-Modus).
 	useEffect(() => {
-		if (state.success && mode === "create") {
-			formRef.current?.reset();
-		}
-	}, [state.success, mode]);
+		if (!state.success) return;
+		formRef.current?.reset();
+		onSuccess?.();
+	}, [state.success, onSuccess]);
 
 	return (
-		<form
-			ref={formRef}
-			action={formAction}
-			className="flex flex-col gap-4 max-w-md"
-		>
+		<form ref={formRef} action={formAction} className="flex flex-col gap-4">
 			{mode === "edit" && (
 				<input type="hidden" name="id" defaultValue={produkt?.id} />
 			)}
 
 			<Field data-invalid={!!state.errors?.art}>
-				<FieldLabel htmlFor="art">Art</FieldLabel>
+				<FieldLabel htmlFor={`${mode}-art`}>Art</FieldLabel>
 				<select
-					id="art"
+					id={`${mode}-art`}
 					name="art"
 					className={selectClasses}
 					defaultValue={produkt?.art ?? ""}
@@ -68,9 +67,9 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 			</Field>
 
 			<Field data-invalid={!!state.errors?.bezeichnung}>
-				<FieldLabel htmlFor="bezeichnung">Bezeichnung</FieldLabel>
+				<FieldLabel htmlFor={`${mode}-bezeichnung`}>Bezeichnung</FieldLabel>
 				<Input
-					id="bezeichnung"
+					id={`${mode}-bezeichnung`}
 					name="bezeichnung"
 					placeholder="z. B. Nordmanntanne"
 					defaultValue={produkt?.bezeichnung}
@@ -80,12 +79,12 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 			</Field>
 
 			<Field data-invalid={!!state.errors?.von_cm}>
-				<FieldLabel htmlFor="von_cm">Größe von (cm)</FieldLabel>
+				<FieldLabel htmlFor={`${mode}-von_cm`}>Größe von (cm)</FieldLabel>
 				<Input
-					id="von_cm"
+					id={`${mode}-von_cm`}
 					name="von_cm"
 					type="number"
-					min={0}
+					min={1}
 					required
 					placeholder="100"
 					defaultValue={produkt?.von_cm}
@@ -95,12 +94,12 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 			</Field>
 
 			<Field data-invalid={!!state.errors?.bis_cm}>
-				<FieldLabel htmlFor="bis_cm">Größe bis (cm)</FieldLabel>
+				<FieldLabel htmlFor={`${mode}-bis_cm`}>Größe bis (cm)</FieldLabel>
 				<Input
-					id="bis_cm"
+					id={`${mode}-bis_cm`}
 					name="bis_cm"
 					type="number"
-					min={0}
+					min={1}
 					required
 					placeholder="200"
 					defaultValue={produkt?.bis_cm}

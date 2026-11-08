@@ -15,7 +15,6 @@ const crud = createCrud({
 });
 
 export const getProdukte = crud.getAll;
-export const getProdukt = crud.getById;
 export const createProdukt = crud.create;
 export const updateProdukt = crud.update;
 export const deleteProdukt = crud.remove;

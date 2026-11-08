@@ -1,5 +1,12 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from "vitest";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	createProdukt,
+	deleteProdukt,
+	updateProdukt,
+} from "@/lib/data/produkt";
 
 // "use server"-Dateien ziehen next/cache und next/navigation rein – beide
 // außerhalb eines laufenden Next-Servers durch Stubs ersetzen. Die Daten-
@@ -27,6 +34,7 @@ import {
 } from "@/app/protected/kunden/actions";
 import {
 	createProduktAction,
+	deleteProduktAction,
 	type ProduktFormState,
 	updateProduktAction,
 } from "@/app/protected/produkte/actions";
@@ -82,13 +90,24 @@ describe("produkte actions", () => {
 		bis_cm: "200",
 	};
 
-	it("create: valid form succeeds", async () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("create: valid form saves coerced sizes and revalidates", async () => {
 		const state: ProduktFormState = await createProduktAction(
 			{},
 			formMitWerten(basis),
 		);
 		expect(state.errors).toBeUndefined();
 		expect(state.success).toBe(true);
+		expect(createProdukt).toHaveBeenCalledWith({
+			art: "Baum",
+			bezeichnung: "Nordmanntanne",
+			von_cm: 100,
+			bis_cm: 200,
+		});
+		expect(revalidatePath).toHaveBeenCalledWith("/protected/produkte");
 	});
 
 	it("create: empty size fields are validation errors, not silent 0", async () => {
@@ -130,5 +149,39 @@ describe("produkte actions", () => {
 		);
 		expect(state.errors?.bis_cm).toBeDefined();
 		expect(state.message).toBeUndefined();
+	});
+
+	it("update: valid form returns success for the dialog and revalidates", async () => {
+		const state: ProduktFormState = await updateProduktAction(
+			{},
+			formMitWerten({ id: "produkt-1", ...basis, bis_cm: "250" }),
+		);
+
+		expect(state).toEqual({ success: true });
+		expect(updateProdukt).toHaveBeenCalledWith("produkt-1", {
+			art: "Baum",
+			bezeichnung: "Nordmanntanne",
+			von_cm: 100,
+			bis_cm: 250,
+		});
+		expect(revalidatePath).toHaveBeenCalledWith("/protected/produkte");
+		expect(redirect).not.toHaveBeenCalled();
+	});
+
+	it("delete: removes the product and revalidates", async () => {
+		await deleteProduktAction(formMitWerten({ id: "produkt-1" }));
+
+		expect(deleteProdukt).toHaveBeenCalledWith("produkt-1");
+		expect(revalidatePath).toHaveBeenCalledWith("/protected/produkte");
+	});
+
+	it("delete: FK error becomes the list banner instead of crashing", async () => {
+		vi.mocked(deleteProdukt).mockRejectedValueOnce(new Error("FK-Verstoß"));
+
+		await deleteProduktAction(formMitWerten({ id: "produkt-1" }));
+
+		expect(redirect).toHaveBeenCalledWith(
+			"/protected/produkte?error=FK-Versto%C3%9F",
+		);
 	});
 });
