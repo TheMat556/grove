@@ -63,6 +63,29 @@ async function createProfilFixture(
 
 const hasSupabase = !!process.env.SUPABASE_TEST_URL;
 
+describe.skipIf(!hasSupabase)("tb_profil auto-create", () => {
+	it("creates a profil for a new auth user", async () => {
+		const email = `auto-${Date.now()}@test.test`;
+		const { data: authData, error } = await getClient().auth.admin.createUser({
+			email,
+			password: "test123",
+			email_confirm: true,
+		});
+		if (error) throw error;
+		created.push(authData.user.id);
+
+		const { data, error: profilError } = await getClient()
+			.from("tb_profil")
+			.select("*")
+			.eq("id", authData.user.id)
+			.maybeSingle();
+
+		expect(profilError).toBeNull();
+		expect(data?.id).toBe(authData.user.id);
+		expect(data?.name).toBeTruthy();
+	});
+});
+
 describe.skipIf(!hasSupabase)("tb_profil CRUD", () => {
 	it("creates profil with explicit id", async () => {
 		const profil = await createProfilFixture();

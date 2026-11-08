@@ -64,4 +64,6 @@ VALUES (
 	'Dev User',
 	'admin'
 )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO UPDATE
+SET name = EXCLUDED.name,
+	rolle = EXCLUDED.rolle;

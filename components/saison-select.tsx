@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
 	Select,
 	SelectContent,
@@ -25,6 +26,11 @@ export function SaisonSelect({
 	selectedId: string;
 }) {
 	const router = useRouter();
+	const [value, setValue] = useState(selectedId);
+
+	useEffect(() => {
+		setValue(selectedId);
+	}, [selectedId]);
 
 	const items = saisons.map((saison) => ({
 		value: saison.id,
@@ -32,7 +38,8 @@ export function SaisonSelect({
 	}));
 
 	function handleChange(next: string | null) {
-		if (!next || next === selectedId) return;
+		if (!next || next === value) return;
+		setValue(next);
 		const maxAge = 60 * 60 * 24 * 365;
 		// biome-ignore lint/suspicious/noDocumentCookie: UI-Präferenz, kein Geheimnis; die Cookie Store API ist nicht überall verfügbar.
 		document.cookie = `${SAISON_COOKIE}=${next}; path=/; max-age=${maxAge}; samesite=lax`;
@@ -40,7 +47,7 @@ export function SaisonSelect({
 	}
 
 	return (
-		<Select items={items} value={selectedId} onValueChange={handleChange}>
+		<Select items={items} value={value} onValueChange={handleChange}>
 			<SelectTrigger
 				className="w-36 sm:w-44"
 				size="sm"

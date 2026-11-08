@@ -1,7 +1,11 @@
 "use server";
 
 import { createSaison, updateSaison } from "@/lib/data/saison";
-import { saisonCreateSchema, saisonInsertSchema } from "@/lib/schemas/saison";
+import {
+	saisonCreateSchema,
+	saisonInsertSchema,
+	saisonUpdateSchema,
+} from "@/lib/schemas/saison";
 import {
 	createEntityActions,
 	type EntityFormState,
@@ -13,7 +17,7 @@ const { createAction: createSaisonAction, updateAction: updateSaisonAction } =
 	createEntityActions({
 		insertSchema: saisonInsertSchema,
 		createSchema: saisonCreateSchema,
-		updateSchema: saisonCreateSchema,
+		updateSchema: saisonUpdateSchema,
 		mapInput: (formData) => ({
 			name: formData.get("name"),
 			start_datum: formData.get("start_datum"),

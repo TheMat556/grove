@@ -64,6 +64,20 @@ describe.skipIf(!hasSupabase)("tb_saison CRUD", () => {
 		expect(updated.name).not.toBe(saison.name);
 	});
 
+	it("keeps active when updating another field", async () => {
+		const saison = await crud.create({
+			name: `test-${uid()}`,
+			start_datum: "2026-01-01",
+			end_datum: "2026-12-31",
+		});
+		createdIds.push(saison.id);
+		await crud.update(saison.id, { active: true });
+
+		const updated = await crud.update(saison.id, { name: `updated-${uid()}` });
+
+		expect(updated.active).toBe(true);
+	});
+
 	it("deletes saison", async () => {
 		const saison = await crud.create({
 			name: `test-${uid()}`,

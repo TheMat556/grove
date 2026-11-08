@@ -54,9 +54,11 @@ export function DatePicker({
 				<PopoverContent className="w-auto p-0" align="start">
 					<Calendar
 						mode="single"
+						required
 						captionLayout="dropdown"
 						selected={date}
 						onSelect={(selected) => {
+							if (!selected) return;
 							setDate(selected);
 							setOpen(false);
 						}}

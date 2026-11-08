@@ -115,6 +115,14 @@ describe("createEntityActions", () => {
 			expect(state).toBeUndefined();
 		});
 
+		it("refuses to update without a login", async () => {
+			getCurrentProfilId.mockRejectedValueOnce(new Error("Nicht angemeldet."));
+			const { actions, config } = makeConfig();
+			const state = await actions.updateAction({}, formDataOf({ id: "abc" }));
+			expect(state).toEqual({ message: "Nicht angemeldet." });
+			expect(config.update).not.toHaveBeenCalled();
+		});
+
 		it("maps update errors to the message field", async () => {
 			const { actions } = makeConfig({
 				update: async () => {
@@ -141,6 +149,15 @@ describe("createEntityActions", () => {
 			await actions.deleteAction(formDataOf({ id: "abc" }));
 			expect(config.remove).toHaveBeenCalledWith("abc");
 			expect(revalidatePath).toHaveBeenCalledWith("/test");
+		});
+
+		it("refuses to delete without a login", async () => {
+			getCurrentProfilId.mockRejectedValueOnce(new Error("Nicht angemeldet."));
+			const { actions, config } = makeConfig();
+			await expect(
+				actions.deleteAction(formDataOf({ id: "abc" })),
+			).rejects.toThrow("Nicht angemeldet.");
+			expect(config.remove).not.toHaveBeenCalled();
 		});
 
 		it("does nothing without an id", async () => {

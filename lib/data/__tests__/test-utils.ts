@@ -69,14 +69,17 @@ export async function createTestProfil(
 
 	const { data, error } = await client
 		.from("tb_profil")
-		.insert({
-			id: authData.user.id,
-			name: `test-${Math.random().toString(36).slice(2, 8)}`,
-			rolle: "mitarbeiter",
-			telefon: null,
-			aktiv: true,
-			...overrides,
-		})
+		.upsert(
+			{
+				id: authData.user.id,
+				name: `test-${Math.random().toString(36).slice(2, 8)}`,
+				rolle: "mitarbeiter",
+				telefon: null,
+				aktiv: true,
+				...overrides,
+			},
+			{ onConflict: "id" },
+		)
 		.select()
 		.single();
 
