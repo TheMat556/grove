@@ -1,11 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { ZodError, ZodObject, ZodType } from "zod";
+import type { ZodError, ZodType } from "zod";
 import { getCurrentProfilId } from "@/lib/data/session";
 
 /**
  * Gemeinsamer Zustandstyp aller CRUD-Formulare. Die Entity-actions.ts-Dateien
- * re-exportieren ihn unter ihrem eigenen Namen (z. B. StandortFormState),
+ * re-exportieren ihn unter ihrem eigenen Namen (z. B. SaisonFormState),
  * damit die Formulare unverändert bleiben.
  */
 export type EntityFormState = {
@@ -16,10 +16,11 @@ export type EntityFormState = {
 
 type EntityActionsConfig<T> = {
 	/**
-	 * Refinement-freies ZodObject für create() und update() (siehe CrudConfig
-	 * in lib/data/crud.ts).
+	 * Schema des vollständigen Datensatzes (T wird daraus abgeleitet). Muss die
+	 * Refinement-frei-Bedingung von CrudConfig erfüllen, sofern es auch an
+	 * createCrud() geht.
 	 */
-	insertSchema: ZodObject;
+	insertSchema: ZodType<T>;
 	/**
 	 * Optionales Schema für create() mit feldübergreifenden Regeln
 	 * (z. B. produktCreateSchema). Ohne Angabe wird insertSchema verwendet.
@@ -27,10 +28,11 @@ type EntityActionsConfig<T> = {
 	createSchema?: ZodType<T>;
 	/**
 	 * Optionales Schema für update(). Nötig bei feldübergreifenden Regeln, die
-	 * auch beim Update greifen sollen (z. B. bis_cm >= von_cm bei Produkten).
+	 * auch beim Update greifen sollen (z. B. bis_cm >= von_cm bei Produkten),
+	 * oder wenn nur ein Teil der Felder geschrieben wird (z. B. Profil).
 	 * Ohne Angabe wird insertSchema verwendet.
 	 */
-	updateSchema?: ZodType<T>;
+	updateSchema?: ZodType<Partial<T>>;
 	/** FormData → Eingabeobjekt. Feld-Parsing bleibt entity-spezifisch. */
 	mapInput: (formData: FormData) => unknown;
 	/**
@@ -38,7 +40,7 @@ type EntityActionsConfig<T> = {
 	 * lassen create() weg und exportieren createAction nicht.
 	 */
 	create?: (input: T) => Promise<unknown>;
-	update: (id: string, input: Partial<T>) => Promise<unknown>;
+	update: (id: string, input: T) => Promise<unknown>;
 	/**
 	 * Optional: Entitäten ohne Delete (z. B. Profil) lassen remove() weg und
 	 * exportieren deleteAction nicht.

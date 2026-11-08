@@ -5,10 +5,7 @@ import {
 	deleteStandMitStandort,
 	updateStandMitStandort,
 } from "@/lib/data/stand";
-import {
-	type StandMitStandortInput,
-	standMitStandortSchema,
-} from "@/lib/schemas/stand";
+import { standMitStandortSchema } from "@/lib/schemas/stand";
 import {
 	createEntityActions,
 	type EntityFormState,
@@ -30,9 +27,7 @@ const {
 		adresse: formData.get("adresse"),
 	}),
 	create: createStandMitStandort,
-	// Adaptiert Partial<T> der Factory auf den vollständigen Input der Datenfunktion.
-	update: (id, input) =>
-		updateStandMitStandort(id, input as StandMitStandortInput),
+	update: updateStandMitStandort,
 	remove: deleteStandMitStandort,
 	labels: { singular: "Stand" },
 	revalidatePath: "/protected/staende",

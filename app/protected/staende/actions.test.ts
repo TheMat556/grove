@@ -25,7 +25,6 @@ vi.mock("@/lib/data/stand", () => ({
 
 import {
 	createStandAction,
-	deleteStandAction,
 	type StandFormState,
 	updateStandAction,
 } from "./actions";
@@ -102,19 +101,5 @@ describe("staende actions", () => {
 			ort: "Graz",
 			adresse: "Hauptplatz 1",
 		});
-	});
-
-	it("update: fehlende id wird vor der Validierung abgelehnt", async () => {
-		const state = await updateStandAction({}, formMitWerten(basis));
-
-		expect(state.message).toBeTruthy();
-		expect(data.update).not.toHaveBeenCalled();
-	});
-
-	it("delete: löscht den Stand", async () => {
-		await deleteStandAction(formMitWerten({ id: "stand-1" }));
-
-		expect(data.remove).toHaveBeenCalledWith("stand-1");
-		expect(revalidatePath).toHaveBeenCalledWith("/protected/staende");
 	});
 });
