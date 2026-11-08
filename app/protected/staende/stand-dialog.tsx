@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactElement, useState } from "react";
+import { type ReactElement, useCallback, useState } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -20,6 +20,9 @@ type StandDialogProps = {
 
 export function StandDialog({ mode, stand, trigger }: StandDialogProps) {
 	const [open, setOpen] = useState(false);
+	// Stabil halten: sonst re-triggert die Success-State-Änderung im Formular bei
+	// jedem Render und schließt den Dialog direkt nach dem Wiederöffnen.
+	const close = useCallback(() => setOpen(false), []);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -37,7 +40,7 @@ export function StandDialog({ mode, stand, trigger }: StandDialogProps) {
 							: "Bezeichnung oder Standort ändern."}
 					</DialogDescription>
 				</DialogHeader>
-				<StandForm mode={mode} stand={stand} onSuccess={() => setOpen(false)} />
+				<StandForm mode={mode} stand={stand} onSuccess={close} />
 			</DialogContent>
 		</Dialog>
 	);
