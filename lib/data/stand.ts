@@ -33,7 +33,8 @@ export type StandMitStandort = Stand & { standort: Standort | null };
 export async function getStaendeMitStandort(): Promise<StandMitStandort[]> {
 	const [staende, standorte] = await Promise.all([
 		getStaende(),
-		getStandorte(),
+		// Fehlende Standorte dürfen die Stände-Liste nicht killen – Label fällt auf "–" zurück.
+		getStandorte().catch(() => []),
 	]);
 	const standortById = new Map(
 		standorte.map((standort) => [standort.id, standort]),

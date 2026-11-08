@@ -67,6 +67,15 @@ describe("getStaendeMitStandort", () => {
 			{ ...standRow, standort: null },
 		]);
 	});
+
+	it("behält die Stände, wenn die Standort-Abfrage scheitert", async () => {
+		crud.getAll.mockResolvedValue([standRow]);
+		standort.getStandorte.mockRejectedValue(new Error("DB kaputt"));
+
+		await expect(getStaendeMitStandort()).resolves.toEqual([
+			{ ...standRow, standort: null },
+		]);
+	});
 });
 
 describe("createStandMitStandort", () => {
