@@ -4,20 +4,34 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Liefert die aktuell angemeldete Benutzer-ID (auth.users.id = tb_profil.id).
- * Wirft, wenn kein Benutzer angemeldet ist. Pro Request memoisiert (React cache),
- * damit wiederholte Aufrufe innerhalb eines Renderns denselben Lookup teilen.
+ * Liefert den aktuell angemeldeten auth.users-Benutzer (oder null).
+ * Pro Request memoisiert, damit alle Session-Helfer nur einen Lookup teilen.
  */
-export const getCurrentProfilId = cache(async (): Promise<string> => {
+const getCurrentUser = cache(async () => {
 	const supabase = await createClient();
 	const { data, error } = await supabase.auth.getUser();
+	return error ? null : (data.user ?? null);
+});
 
-	if (error || !data.user) {
+/**
+ * Liefert die aktuell angemeldete Benutzer-ID (auth.users.id = tb_profil.id).
+ * Wirft, wenn kein Benutzer angemeldet ist.
+ */
+export async function getCurrentProfilId(): Promise<string> {
+	const user = await getCurrentUser();
+
+	if (!user) {
 		throw new Error("Nicht angemeldet.");
 	}
 
-	return data.user.id;
-});
+	return user.id;
+}
+
+/** Liefert die E-Mail des aktuellen auth.users-Benutzers. */
+export async function getCurrentProfilEmail(): Promise<string> {
+	const user = await getCurrentUser();
+	return user?.email ?? "";
+}
 
 /**
  * Liefert das vollständige tb_profil des aktuellen Benutzers.

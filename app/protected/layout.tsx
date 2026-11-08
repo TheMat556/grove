@@ -1,7 +1,15 @@
-import Link from "next/link";
 import { Suspense } from "react";
-import { AuthButton } from "@/components/auth-button";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SaisonSwitcher } from "@/components/saison-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Separator } from "@/components/ui/separator";
+import {
+	SidebarInset,
+	SidebarProvider,
+	SidebarTrigger,
+} from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 export default function ProtectedLayout({
 	children,
@@ -9,42 +17,34 @@ export default function ProtectedLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<main className="min-h-screen flex flex-col items-center">
-			<div className="flex-1 w-full flex flex-col gap-20 items-center">
-				<nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-					<div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
-						<div className="flex gap-5 items-center font-semibold">
-							<Link href="/protected">Grove</Link>
-							{[
-								["/protected/saisons", "Saisons"],
-								["/protected/standorte", "Standorte"],
-								["/protected/staende", "Stände"],
-								["/protected/produkte", "Produkte"],
-								["/protected/kunden", "Kunden"],
-								["/protected/profile", "Profile"],
-							].map(([href, label]) => (
-								<Link
-									key={href}
-									href={href}
-									className="text-muted-foreground font-normal hover:underline"
-								>
-									{label}
-								</Link>
-							))}
+		<SidebarProvider className="h-svh overflow-hidden">
+			<Suspense>
+				<AppSidebar />
+			</Suspense>
+			<SidebarInset>
+				<header className="flex h-12 shrink-0 items-center gap-2 bg-transparent">
+					<div className="flex w-full items-center gap-1 px-3 lg:gap-2 lg:px-4">
+						<SidebarTrigger className="-ml-1" />
+						<Separator
+							orientation="vertical"
+							className="mr-2 data-[orientation=vertical]:h-6"
+						/>
+						<div className="ml-auto flex items-center gap-2">
+							<Suspense fallback={<Skeleton className="h-7 w-36 sm:w-44" />}>
+								<SaisonSwitcher />
+							</Suspense>
+							<ThemeSwitcher />
 						</div>
-						<Suspense>
-							<AuthButton />
-						</Suspense>
 					</div>
-				</nav>
-				<div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
+				</header>
+				<div
+					className={cn(
+						"flex min-h-0 flex-1 flex-col rounded-xl bg-background p-4 shadow-sm md:mx-2 md:mb-2 max-md:mx-0 max-md:mb-0 max-md:rounded-b-none max-md:shadow-none",
+					)}
+				>
 					{children}
 				</div>
-
-				<footer className="w-full flex items-center justify-center border-t mx-auto text-center text-xs gap-8 py-16">
-					<ThemeSwitcher />
-				</footer>
-			</div>
-		</main>
+			</SidebarInset>
+		</SidebarProvider>
 	);
 }

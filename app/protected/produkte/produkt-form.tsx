@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { selectClasses } from "../_crud/select-classes";
 import {
 	createProduktAction,
@@ -48,8 +49,8 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 				<input type="hidden" name="id" defaultValue={produkt?.id} />
 			)}
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="art">Art</Label>
+			<Field data-invalid={!!state.errors?.art}>
+				<FieldLabel htmlFor="art">Art</FieldLabel>
 				<select
 					id="art"
 					name="art"
@@ -63,13 +64,11 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 					<option value="Baum">Baum</option>
 					<option value="Kreuz">Kreuz</option>
 				</select>
-				{state.errors?.art && (
-					<p className="text-sm text-destructive">{state.errors.art[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.art?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="bezeichnung">Bezeichnung</Label>
+			<Field data-invalid={!!state.errors?.bezeichnung}>
+				<FieldLabel htmlFor="bezeichnung">Bezeichnung</FieldLabel>
 				<Input
 					id="bezeichnung"
 					name="bezeichnung"
@@ -77,15 +76,11 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 					defaultValue={produkt?.bezeichnung}
 					aria-invalid={!!state.errors?.bezeichnung}
 				/>
-				{state.errors?.bezeichnung && (
-					<p className="text-sm text-destructive">
-						{state.errors.bezeichnung[0]}
-					</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.bezeichnung?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="von_cm">Größe von (cm)</Label>
+			<Field data-invalid={!!state.errors?.von_cm}>
+				<FieldLabel htmlFor="von_cm">Größe von (cm)</FieldLabel>
 				<Input
 					id="von_cm"
 					name="von_cm"
@@ -96,13 +91,11 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 					defaultValue={produkt?.von_cm}
 					aria-invalid={!!state.errors?.von_cm}
 				/>
-				{state.errors?.von_cm && (
-					<p className="text-sm text-destructive">{state.errors.von_cm[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.von_cm?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="bis_cm">Größe bis (cm)</Label>
+			<Field data-invalid={!!state.errors?.bis_cm}>
+				<FieldLabel htmlFor="bis_cm">Größe bis (cm)</FieldLabel>
 				<Input
 					id="bis_cm"
 					name="bis_cm"
@@ -113,13 +106,13 @@ export function ProduktForm({ mode, produkt }: ProduktFormProps) {
 					defaultValue={produkt?.bis_cm}
 					aria-invalid={!!state.errors?.bis_cm}
 				/>
-				{state.errors?.bis_cm && (
-					<p className="text-sm text-destructive">{state.errors.bis_cm[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.bis_cm?.[0]}</FieldError>
+			</Field>
 
 			{state.message && (
-				<p className="text-sm text-destructive">{state.message}</p>
+				<Alert variant="destructive">
+					<AlertDescription>{state.message}</AlertDescription>
+				</Alert>
 			)}
 
 			<Button type="submit" disabled={isPending} className="self-start">

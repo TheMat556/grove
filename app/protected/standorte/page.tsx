@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StandortForm } from "./standort-form";
 import { StandorteList } from "./standorte-list";
 
@@ -11,9 +12,9 @@ async function ErrorBanner({
 	if (!error) return null;
 
 	return (
-		<p className="bg-destructive/10 text-destructive text-sm p-3 px-5 rounded-md">
-			{error}
-		</p>
+		<Alert variant="destructive">
+			<AlertDescription>{error}</AlertDescription>
+		</Alert>
 	);
 }
 

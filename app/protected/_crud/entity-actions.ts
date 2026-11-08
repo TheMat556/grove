@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ZodError, ZodObject, ZodType } from "zod";
+import { getCurrentProfilId } from "@/lib/data/session";
 
 /**
  * Gemeinsamer Zustandstyp aller CRUD-Formulare. Die Entity-actions.ts-Dateien
@@ -51,6 +52,12 @@ type EntityActionsConfig<T> = {
 	 * sonst in der Error-Boundary.
 	 */
 	removeErrorPath?: string;
+	/**
+	 * Standardmäßig leitet updateAction nach dem Speichern auf die Liste um.
+	 * Mit false gibt die Action stattdessen { success: true } zurück, damit
+	 * Dialog-Formulare sich schließen können.
+	 */
+	redirectOnUpdate?: boolean;
 };
 
 /**
@@ -69,7 +76,8 @@ function toFieldErrors(error: ZodError): Record<string, string[]> {
  * optional – ohne sie wird der jeweilige Baustein nicht gebaut bzw. lehnt
  * mit einer Meldung ab. Die Logik ist identisch mit der bisherigen
  * pro-Entity-Duplikation – nur der Unterschied (Schema(s), Daten-Funktionen,
- * FormData-Mapping, Labels, Pfad) kommt aus der Config.
+ * FormData-Mapping, Labels, Pfad) kommt aus der Config. Jede Action prüft die
+ * Anmeldung selbst, zusätzlich zum Proxy.
  */
 export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 	const {
@@ -83,6 +91,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 		labels,
 		revalidatePath: revalidatePathValue,
 		removeErrorPath,
+		redirectOnUpdate,
 	} = config;
 
 	return {
@@ -104,6 +113,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 			}
 
 			try {
+				await getCurrentProfilId();
 				await create(parsed.data as T);
 			} catch (e) {
 				return {
@@ -138,6 +148,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 			}
 
 			try {
+				await getCurrentProfilId();
 				await update(id, parsed.data as T);
 			} catch (e) {
 				return {
@@ -149,6 +160,9 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 			}
 
 			revalidatePath(revalidatePathValue);
+			if (redirectOnUpdate === false) {
+				return { success: true };
+			}
 			redirect(revalidatePathValue);
 		},
 
@@ -164,6 +178,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 
 			// ponytail: ohne removeErrorPath landen FK-Fehler in der Error-Boundary; Inline-Feedback erst bei echtem Nutzerbedarf
 			try {
+				await getCurrentProfilId();
 				await remove(id);
 			} catch (e) {
 				if (!removeErrorPath) throw e;

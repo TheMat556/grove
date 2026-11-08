@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { getStandorte } from "@/lib/data/standort";
 import { selectClasses } from "../_crud/select-classes";
 import {
@@ -46,8 +47,8 @@ export function StandForm({ mode, standorte, stand }: StandFormProps) {
 				<input type="hidden" name="id" defaultValue={stand?.id} />
 			)}
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="bezeichnung">Bezeichnung</Label>
+			<Field data-invalid={!!state.errors?.bezeichnung}>
+				<FieldLabel htmlFor="bezeichnung">Bezeichnung</FieldLabel>
 				<Input
 					id="bezeichnung"
 					name="bezeichnung"
@@ -55,15 +56,11 @@ export function StandForm({ mode, standorte, stand }: StandFormProps) {
 					defaultValue={stand?.bezeichnung}
 					aria-invalid={!!state.errors?.bezeichnung}
 				/>
-				{state.errors?.bezeichnung && (
-					<p className="text-sm text-destructive">
-						{state.errors.bezeichnung[0]}
-					</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.bezeichnung?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="standort_id">Standort</Label>
+			<Field data-invalid={!!state.errors?.standort_id}>
+				<FieldLabel htmlFor="standort_id">Standort</FieldLabel>
 				<select
 					id="standort_id"
 					name="standort_id"
@@ -80,15 +77,13 @@ export function StandForm({ mode, standorte, stand }: StandFormProps) {
 						</option>
 					))}
 				</select>
-				{state.errors?.standort_id && (
-					<p className="text-sm text-destructive">
-						{state.errors.standort_id[0]}
-					</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.standort_id?.[0]}</FieldError>
+			</Field>
 
 			{state.message && (
-				<p className="text-sm text-destructive">{state.message}</p>
+				<Alert variant="destructive">
+					<AlertDescription>{state.message}</AlertDescription>
+				</Alert>
 			)}
 
 			<Button type="submit" disabled={isPending} className="self-start">

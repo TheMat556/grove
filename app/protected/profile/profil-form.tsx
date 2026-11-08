@@ -1,8 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { type ProfilFormState, updateProfilAction } from "./actions";
@@ -29,8 +31,8 @@ export function ProfilForm({ profil }: ProfilFormProps) {
 		<form action={formAction} className="flex flex-col gap-4 max-w-md">
 			<input type="hidden" name="id" defaultValue={profil.id} />
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="name">Name</Label>
+			<Field data-invalid={!!state.errors?.name}>
+				<FieldLabel htmlFor="name">Name</FieldLabel>
 				<Input
 					id="name"
 					name="name"
@@ -38,13 +40,11 @@ export function ProfilForm({ profil }: ProfilFormProps) {
 					defaultValue={profil.name}
 					aria-invalid={!!state.errors?.name}
 				/>
-				{state.errors?.name && (
-					<p className="text-sm text-destructive">{state.errors.name[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.name?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="telefon">Telefon</Label>
+			<Field data-invalid={!!state.errors?.telefon}>
+				<FieldLabel htmlFor="telefon">Telefon</FieldLabel>
 				<Input
 					id="telefon"
 					name="telefon"
@@ -52,10 +52,8 @@ export function ProfilForm({ profil }: ProfilFormProps) {
 					defaultValue={profil.telefon ?? ""}
 					aria-invalid={!!state.errors?.telefon}
 				/>
-				{state.errors?.telefon && (
-					<p className="text-sm text-destructive">{state.errors.telefon[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.telefon?.[0]}</FieldError>
+			</Field>
 
 			<div className="flex items-center gap-2">
 				<Checkbox id="aktiv" name="aktiv" defaultChecked={profil.aktiv} />
@@ -66,7 +64,9 @@ export function ProfilForm({ profil }: ProfilFormProps) {
 			<p className="text-sm text-muted-foreground">Rolle: {profil.rolle}</p>
 
 			{state.message && (
-				<p className="text-sm text-destructive">{state.message}</p>
+				<Alert variant="destructive">
+					<AlertDescription>{state.message}</AlertDescription>
+				</Alert>
 			)}
 
 			<Button type="submit" disabled={isPending} className="self-start">

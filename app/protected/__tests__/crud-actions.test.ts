@@ -16,6 +16,9 @@ vi.mock("@/lib/data/produkt", () => ({
 	updateProdukt: vi.fn().mockResolvedValue({}),
 	deleteProdukt: vi.fn().mockResolvedValue(undefined),
 }));
+vi.mock("@/lib/data/session", () => ({
+	getCurrentProfilId: vi.fn().mockResolvedValue("profil-1"),
+}));
 
 import {
 	createKundeAction,

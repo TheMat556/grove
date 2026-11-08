@@ -53,6 +53,17 @@ function uniqueEmail(): string {
 	return `test-${Date.now()}-${uidCounter}@test.test`;
 }
 
+let saisonYear = 2200;
+
+/** Eindeutiger, nicht überlappender Saison-Zeitraum für Fixtures. */
+export function uniqueSaisonRange() {
+	const year = saisonYear++;
+	return {
+		start_datum: `${year}-01-01`,
+		end_datum: `${year}-12-31`,
+	};
+}
+
 export async function createTestProfil(
 	overrides: Record<string, unknown> = {},
 ) {
@@ -69,14 +80,17 @@ export async function createTestProfil(
 
 	const { data, error } = await client
 		.from("tb_profil")
-		.insert({
-			id: authData.user.id,
-			name: `test-${Math.random().toString(36).slice(2, 8)}`,
-			rolle: "mitarbeiter",
-			telefon: null,
-			aktiv: true,
-			...overrides,
-		})
+		.upsert(
+			{
+				id: authData.user.id,
+				name: `test-${Math.random().toString(36).slice(2, 8)}`,
+				rolle: "mitarbeiter",
+				telefon: null,
+				aktiv: true,
+				...overrides,
+			},
+			{ onConflict: "id" },
+		)
 		.select()
 		.single();
 
@@ -160,8 +174,7 @@ export function createFixtures() {
 	async function createSaison(overrides: Overrides = {}) {
 		const saison = await crudSaison.create({
 			name: `test-${uid()}`,
-			start_datum: "2026-01-01",
-			end_datum: "2026-12-31",
+			...uniqueSaisonRange(),
 			...overrides,
 		});
 		remember("tb_saison", saison.id);
@@ -194,7 +207,7 @@ export function createFixtures() {
 		const produkt = await crudProdukt.create({
 			bezeichnung: `test-${uid()}`,
 			art: "Baum",
-			von_cm: 0,
+			von_cm: 1,
 			bis_cm: 100,
 			...overrides,
 		});

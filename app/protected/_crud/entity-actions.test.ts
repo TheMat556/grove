@@ -1,12 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { revalidatePath, redirect } = vi.hoisted(() => ({
+const { revalidatePath, redirect, getCurrentProfilId } = vi.hoisted(() => ({
 	revalidatePath: vi.fn(),
 	redirect: vi.fn(),
+	getCurrentProfilId: vi.fn(async () => "profil-1"),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect }));
+vi.mock("@/lib/data/session", () => ({ getCurrentProfilId }));
 
 import { createEntityActions } from "./entity-actions";
 
@@ -36,6 +38,7 @@ type ConfigOverrides = {
 	create?: (input: unknown) => Promise<unknown>;
 	update?: (id: string, input: unknown) => Promise<unknown>;
 	remove?: (id: string) => Promise<void>;
+	redirectOnUpdate?: boolean;
 };
 
 function makeConfig(overrides: ConfigOverrides = {}) {
@@ -75,6 +78,14 @@ describe("createEntityActions", () => {
 			expect(state).toEqual({ success: true });
 		});
 
+		it("refuses to write without a login", async () => {
+			getCurrentProfilId.mockRejectedValueOnce(new Error("Nicht angemeldet."));
+			const { actions, config } = makeConfig();
+			const state = await actions.createAction({}, formDataOf());
+			expect(state).toEqual({ message: "Nicht angemeldet." });
+			expect(config.create).not.toHaveBeenCalled();
+		});
+
 		it("maps thrown errors to the message field", async () => {
 			const { actions } = makeConfig({
 				create: async () => {
@@ -104,6 +115,14 @@ describe("createEntityActions", () => {
 			expect(state).toBeUndefined();
 		});
 
+		it("refuses to update without a login", async () => {
+			getCurrentProfilId.mockRejectedValueOnce(new Error("Nicht angemeldet."));
+			const { actions, config } = makeConfig();
+			const state = await actions.updateAction({}, formDataOf({ id: "abc" }));
+			expect(state).toEqual({ message: "Nicht angemeldet." });
+			expect(config.update).not.toHaveBeenCalled();
+		});
+
 		it("maps update errors to the message field", async () => {
 			const { actions } = makeConfig({
 				update: async () => {
@@ -113,6 +132,15 @@ describe("createEntityActions", () => {
 			const state = await actions.updateAction({}, formDataOf({ id: "abc" }));
 			expect(state.message).toBe("FK-Verstoß");
 		});
+
+		it("returns success instead of redirecting when redirectOnUpdate is false", async () => {
+			const { actions, config } = makeConfig({ redirectOnUpdate: false });
+			const state = await actions.updateAction({}, formDataOf({ id: "abc" }));
+			expect(config.update).toHaveBeenCalledWith("abc", { feld: "x" });
+			expect(revalidatePath).toHaveBeenCalledWith("/test");
+			expect(redirect).not.toHaveBeenCalled();
+			expect(state).toEqual({ success: true });
+		});
 	});
 
 	describe("deleteAction", () => {
@@ -121,6 +149,15 @@ describe("createEntityActions", () => {
 			await actions.deleteAction(formDataOf({ id: "abc" }));
 			expect(config.remove).toHaveBeenCalledWith("abc");
 			expect(revalidatePath).toHaveBeenCalledWith("/test");
+		});
+
+		it("refuses to delete without a login", async () => {
+			getCurrentProfilId.mockRejectedValueOnce(new Error("Nicht angemeldet."));
+			const { actions, config } = makeConfig();
+			await expect(
+				actions.deleteAction(formDataOf({ id: "abc" })),
+			).rejects.toThrow("Nicht angemeldet.");
+			expect(config.remove).not.toHaveBeenCalled();
 		});
 
 		it("does nothing without an id", async () => {
