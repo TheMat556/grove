@@ -9,6 +9,7 @@ import {
 	PopoverContent,
 	PopoverTrigger,
 } from "@/components/ui/popover";
+import { parseIsoDate, toLocalIsoDate } from "@/lib/saison";
 
 type DatePickerProps = {
 	id: string;
@@ -17,30 +18,24 @@ type DatePickerProps = {
 	invalid?: boolean;
 };
 
-function parseDate(value?: string) {
-	if (!value) return undefined;
-	const date = new Date(`${value}T00:00:00`);
-	return Number.isNaN(date.getTime()) ? undefined : date;
-}
-
-function toIsoDate(date: Date) {
-	const month = String(date.getMonth() + 1).padStart(2, "0");
-	const day = String(date.getDate()).padStart(2, "0");
-	return `${date.getFullYear()}-${month}-${day}`;
-}
-
 export function DatePicker({
 	id,
 	name,
 	defaultValue,
 	invalid,
 }: DatePickerProps) {
-	const [date, setDate] = useState(() => parseDate(defaultValue));
+	const [date, setDate] = useState(() =>
+		defaultValue ? parseIsoDate(defaultValue) : undefined,
+	);
 	const [open, setOpen] = useState(false);
 
 	return (
 		<>
-			<input type="hidden" name={name} value={date ? toIsoDate(date) : ""} />
+			<input
+				type="hidden"
+				name={name}
+				value={date ? toLocalIsoDate(date) : ""}
+			/>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger
 					render={

@@ -194,7 +194,7 @@ export function createFixtures() {
 		const produkt = await crudProdukt.create({
 			bezeichnung: `test-${uid()}`,
 			art: "Baum",
-			von_cm: 0,
+			von_cm: 1,
 			bis_cm: 100,
 			...overrides,
 		});

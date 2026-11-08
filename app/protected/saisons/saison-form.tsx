@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { Saison } from "@/lib/schemas/saison";
 import {
 	createSaisonAction,
@@ -39,8 +40,8 @@ export function SaisonForm({ mode, saison, onSuccess }: SaisonFormProps) {
 				<input type="hidden" name="id" defaultValue={saison?.id} />
 			)}
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor={`${mode}-name`}>Name</Label>
+			<Field data-invalid={!!state.errors?.name}>
+				<FieldLabel htmlFor={`${mode}-name`}>Name</FieldLabel>
 				<Input
 					id={`${mode}-name`}
 					name="name"
@@ -48,45 +49,37 @@ export function SaisonForm({ mode, saison, onSuccess }: SaisonFormProps) {
 					defaultValue={saison?.name}
 					aria-invalid={!!state.errors?.name}
 				/>
-				{state.errors?.name && (
-					<p className="text-sm text-destructive">{state.errors.name[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.name?.[0]}</FieldError>
+			</Field>
 
 			<div className="grid grid-cols-2 gap-3">
-				<div className="flex flex-col gap-1.5">
-					<Label htmlFor={`${mode}-start_datum`}>Startdatum</Label>
+				<Field data-invalid={!!state.errors?.start_datum}>
+					<FieldLabel htmlFor={`${mode}-start_datum`}>Startdatum</FieldLabel>
 					<DatePicker
 						id={`${mode}-start_datum`}
 						name="start_datum"
 						defaultValue={saison?.start_datum}
 						invalid={!!state.errors?.start_datum}
 					/>
-					{state.errors?.start_datum && (
-						<p className="text-sm text-destructive">
-							{state.errors.start_datum[0]}
-						</p>
-					)}
-				</div>
+					<FieldError>{state.errors?.start_datum?.[0]}</FieldError>
+				</Field>
 
-				<div className="flex flex-col gap-1.5">
-					<Label htmlFor={`${mode}-end_datum`}>Enddatum</Label>
+				<Field data-invalid={!!state.errors?.end_datum}>
+					<FieldLabel htmlFor={`${mode}-end_datum`}>Enddatum</FieldLabel>
 					<DatePicker
 						id={`${mode}-end_datum`}
 						name="end_datum"
 						defaultValue={saison?.end_datum}
 						invalid={!!state.errors?.end_datum}
 					/>
-					{state.errors?.end_datum && (
-						<p className="text-sm text-destructive">
-							{state.errors.end_datum[0]}
-						</p>
-					)}
-				</div>
+					<FieldError>{state.errors?.end_datum?.[0]}</FieldError>
+				</Field>
 			</div>
 
 			{state.message && (
-				<p className="text-sm text-destructive">{state.message}</p>
+				<Alert variant="destructive">
+					<AlertDescription>{state.message}</AlertDescription>
+				</Alert>
 			)}
 
 			<Button type="submit" disabled={isPending} className="self-start">

@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
 	createStandortAction,
 	type StandortFormState,
@@ -41,8 +42,8 @@ export function StandortForm({ mode, standort }: StandortFormProps) {
 				<input type="hidden" name="id" defaultValue={standort?.id} />
 			)}
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="plz">PLZ</Label>
+			<Field data-invalid={!!state.errors?.plz}>
+				<FieldLabel htmlFor="plz">PLZ</FieldLabel>
 				<Input
 					id="plz"
 					name="plz"
@@ -53,13 +54,11 @@ export function StandortForm({ mode, standort }: StandortFormProps) {
 					defaultValue={standort?.plz}
 					aria-invalid={!!state.errors?.plz}
 				/>
-				{state.errors?.plz && (
-					<p className="text-sm text-destructive">{state.errors.plz[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.plz?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="ort">Ort</Label>
+			<Field data-invalid={!!state.errors?.ort}>
+				<FieldLabel htmlFor="ort">Ort</FieldLabel>
 				<Input
 					id="ort"
 					name="ort"
@@ -67,13 +66,11 @@ export function StandortForm({ mode, standort }: StandortFormProps) {
 					defaultValue={standort?.ort}
 					aria-invalid={!!state.errors?.ort}
 				/>
-				{state.errors?.ort && (
-					<p className="text-sm text-destructive">{state.errors.ort[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.ort?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="adresse">Adresse</Label>
+			<Field data-invalid={!!state.errors?.adresse}>
+				<FieldLabel htmlFor="adresse">Adresse</FieldLabel>
 				<Input
 					id="adresse"
 					name="adresse"
@@ -81,13 +78,13 @@ export function StandortForm({ mode, standort }: StandortFormProps) {
 					defaultValue={standort?.adresse}
 					aria-invalid={!!state.errors?.adresse}
 				/>
-				{state.errors?.adresse && (
-					<p className="text-sm text-destructive">{state.errors.adresse[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.adresse?.[0]}</FieldError>
+			</Field>
 
 			{state.message && (
-				<p className="text-sm text-destructive">{state.message}</p>
+				<Alert variant="destructive">
+					<AlertDescription>{state.message}</AlertDescription>
+				</Alert>
 			)}
 
 			<Button type="submit" disabled={isPending} className="self-start">

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, LogOut, Settings, UserRound } from "lucide-react";
+import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -12,7 +12,6 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 import {
 	SidebarMenu,
 	SidebarMenuButton,
@@ -33,6 +32,20 @@ function initials(user: NavUserProps["user"]) {
 		.join("");
 }
 
+function UserIdentity({ user }: NavUserProps) {
+	return (
+		<>
+			<Avatar className="h-8 w-8 rounded-lg">
+				<AvatarFallback className="rounded-lg">{initials(user)}</AvatarFallback>
+			</Avatar>
+			<div className="grid flex-1 text-left text-sm leading-tight">
+				<span className="truncate font-medium">{user.name}</span>
+				<span className="truncate text-xs">{user.email}</span>
+			</div>
+		</>
+	);
+}
+
 export function NavUser({ user }: NavUserProps) {
 	const router = useRouter();
 	const { isMobile } = useSidebar();
@@ -44,99 +57,47 @@ export function NavUser({ user }: NavUserProps) {
 	};
 
 	return (
-		<>
-			<SidebarMenu className="gap-1">
-				<SidebarMenuItem>
-					<SidebarMenuButton
-						className="font-semibold"
-						render={<button type="button" onClick={signOut} />}
+		<SidebarMenu>
+			<SidebarMenuItem>
+				<DropdownMenu>
+					<DropdownMenuTrigger
+						render={
+							<SidebarMenuButton
+								size="lg"
+								className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+							/>
+						}
 					>
-						<LogOut />
-						<span>Logout</span>
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-				<SidebarMenuItem>
-					<SidebarMenuButton
-						className="font-semibold"
-						render={<Link href="/protected/settings" />}
+						<UserIdentity user={user} />
+						<ChevronsUpDown className="ml-auto size-4" />
+					</DropdownMenuTrigger>
+					<DropdownMenuContent
+						className="min-w-56 rounded-lg"
+						side={isMobile ? "bottom" : "right"}
+						align="end"
+						sideOffset={4}
 					>
-						<Settings />
-						<span>Settings</span>
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-				<SidebarMenuItem>
-					<SidebarMenuButton
-						className="font-semibold"
-						render={<Link href={`/protected/profile/${user.id}`} />}
-					>
-						<UserRound />
-						<span>Profil</span>
-					</SidebarMenuButton>
-				</SidebarMenuItem>
-			</SidebarMenu>
-			<Separator className="my-1" />
-			<SidebarMenu>
-				<SidebarMenuItem>
-					<DropdownMenu>
-						<DropdownMenuTrigger
-							render={
-								<SidebarMenuButton
-									size="lg"
-									className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-								/>
-							}
-						>
-							<Avatar className="h-8 w-8 rounded-lg">
-								<AvatarFallback className="rounded-lg">
-									{initials(user)}
-								</AvatarFallback>
-							</Avatar>
-							<div className="grid flex-1 text-left text-sm leading-tight">
-								<span className="truncate font-medium">{user.name}</span>
-								<span className="truncate text-xs">{user.email}</span>
+						<DropdownMenuLabel className="p-0 font-normal">
+							<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+								<UserIdentity user={user} />
 							</div>
-							<ChevronsUpDown className="ml-auto size-4" />
-						</DropdownMenuTrigger>
-						<DropdownMenuContent
-							className="min-w-56 rounded-lg"
-							side={isMobile ? "bottom" : "right"}
-							align="end"
-							sideOffset={4}
+						</DropdownMenuLabel>
+						<DropdownMenuItem
+							render={<Link href={`/protected/profile/${user.id}`} />}
 						>
-							<DropdownMenuLabel className="p-0 font-normal">
-								<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-									<Avatar className="h-8 w-8 rounded-lg">
-										<AvatarFallback className="rounded-lg">
-											{initials(user)}
-										</AvatarFallback>
-									</Avatar>
-									<div className="grid flex-1 text-left text-sm leading-tight">
-										<span className="truncate font-medium">{user.name}</span>
-										<span className="truncate text-xs">{user.email}</span>
-									</div>
-								</div>
-							</DropdownMenuLabel>
-							<DropdownMenuItem
-								render={<Link href={`/protected/profile/${user.id}`} />}
-							>
-								<UserRound />
-								Profil
-							</DropdownMenuItem>
-							<DropdownMenuItem render={<Link href="/protected/settings" />}>
-								<Settings />
-								Einstellungen
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-							<DropdownMenuItem
-								render={<button type="button" onClick={signOut} />}
-							>
-								<LogOut />
-								Abmelden
-							</DropdownMenuItem>
-						</DropdownMenuContent>
-					</DropdownMenu>
-				</SidebarMenuItem>
-			</SidebarMenu>
-		</>
+							<UserRound />
+							Mein Profil
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem
+							render={<button type="button" onClick={signOut} />}
+						>
+							<LogOut />
+							Abmelden
+						</DropdownMenuItem>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			</SidebarMenuItem>
+		</SidebarMenu>
 	);
 }

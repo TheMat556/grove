@@ -1,4 +1,5 @@
 import { TreePine } from "lucide-react";
+import Link from "next/link";
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
 import {
@@ -24,7 +25,7 @@ export async function AppSidebar() {
 			<SidebarHeader>
 				<SidebarMenu>
 					<SidebarMenuItem>
-						<SidebarMenuButton size="lg" render={<a href="/protected" />}>
+						<SidebarMenuButton size="lg" render={<Link href="/protected" />}>
 							<div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
 								<TreePine className="size-4" />
 							</div>

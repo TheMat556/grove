@@ -34,7 +34,7 @@ export function SaisonDialog({ mode, saison, trigger }: SaisonDialogProps) {
 					<DialogDescription>
 						{mode === "create"
 							? "Neue Saison mit Zeitraum anlegen."
-							: "Name, Zeitraum oder aktiven Status ändern."}
+							: "Name oder Zeitraum ändern."}
 					</DialogDescription>
 				</DialogHeader>
 				<SaisonForm

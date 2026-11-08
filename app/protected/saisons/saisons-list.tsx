@@ -1,4 +1,5 @@
 import { Pencil } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,13 +11,14 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { getSaisons } from "@/lib/data/saison";
-import { istAktiv } from "@/lib/saison";
+import { istAktiv, parseIsoDate } from "@/lib/saison";
 import { SaisonDialog } from "./saison-dialog";
 
 const dateFormat = new Intl.DateTimeFormat("de-DE");
 
 function formatDate(value: string) {
-	return dateFormat.format(new Date(value));
+	const date = parseIsoDate(value);
+	return date ? dateFormat.format(date) : value;
 }
 
 export async function SaisonsList() {
@@ -25,9 +27,11 @@ export async function SaisonsList() {
 		saisons = await getSaisons();
 	} catch (e) {
 		return (
-			<div className="bg-destructive/10 text-destructive text-sm p-3 px-5 rounded-md">
-				{e instanceof Error ? e.message : "Unbekannter Fehler"}
-			</div>
+			<Alert variant="destructive">
+				<AlertDescription>
+					{e instanceof Error ? e.message : "Unbekannter Fehler"}
+				</AlertDescription>
+			</Alert>
 		);
 	}
 

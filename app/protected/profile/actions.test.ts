@@ -5,15 +5,18 @@ const { revalidatePath, redirect } = vi.hoisted(() => ({
 	redirect: vi.fn(),
 }));
 
-const { updateProfil, getCurrentProfil } = vi.hoisted(() => ({
-	updateProfil: vi.fn(async () => ({})),
-	getCurrentProfil: vi.fn(),
-}));
+const { updateProfil, getCurrentProfil, getCurrentProfilId } = vi.hoisted(
+	() => ({
+		updateProfil: vi.fn(async () => ({})),
+		getCurrentProfil: vi.fn(),
+		getCurrentProfilId: vi.fn(async () => "profil-1"),
+	}),
+);
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect }));
 vi.mock("@/lib/data/profil", () => ({ updateProfil }));
-vi.mock("@/lib/data/session", () => ({ getCurrentProfil }));
+vi.mock("@/lib/data/session", () => ({ getCurrentProfil, getCurrentProfilId }));
 
 import { updateProfilAction } from "./actions";
 

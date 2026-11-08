@@ -1,7 +1,6 @@
 "use server";
 
 import { createSaison, updateSaison } from "@/lib/data/saison";
-import { istAktiv } from "@/lib/saison";
 import { saisonCreateSchema, saisonInsertSchema } from "@/lib/schemas/saison";
 import {
 	createEntityActions,
@@ -15,23 +14,16 @@ const { createAction: createSaisonAction, updateAction: updateSaisonAction } =
 		insertSchema: saisonInsertSchema,
 		createSchema: saisonCreateSchema,
 		updateSchema: saisonCreateSchema,
-		mapInput: (formData) => {
-			const start = formData.get("start_datum");
-			const end = formData.get("end_datum");
-			return {
-				name: formData.get("name"),
-				start_datum: start,
-				end_datum: end,
-				active:
-					typeof start === "string" &&
-					typeof end === "string" &&
-					istAktiv(start, end),
-			};
-		},
+		mapInput: (formData) => ({
+			name: formData.get("name"),
+			start_datum: formData.get("start_datum"),
+			end_datum: formData.get("end_datum"),
+		}),
 		create: createSaison,
 		update: updateSaison,
 		labels: { singular: "Saison" },
 		revalidatePath: "/protected/saisons",
+		redirectOnUpdate: false,
 	});
 
 export { createSaisonAction, updateSaisonAction };

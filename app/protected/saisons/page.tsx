@@ -11,7 +11,8 @@ export default function SaisonsPage() {
 				<div className="flex flex-col gap-1">
 					<h1 className="font-bold text-2xl">Saisons</h1>
 					<p className="text-sm text-muted-foreground">
-						Saisons anlegen, bearbeiten und die aktive Saison festlegen.
+						Saisons anlegen und bearbeiten. Aktiv ist die Saison, in deren
+						Zeitraum heute liegt.
 					</p>
 				</div>
 

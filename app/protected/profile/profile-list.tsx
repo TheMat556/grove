@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import {
 	Card,
@@ -15,9 +16,11 @@ export async function ProfileList() {
 		profile = await getProfile();
 	} catch (e) {
 		return (
-			<div className="bg-destructive/10 text-destructive text-sm p-3 px-5 rounded-md">
-				{e instanceof Error ? e.message : "Unbekannter Fehler"}
-			</div>
+			<Alert variant="destructive">
+				<AlertDescription>
+					{e instanceof Error ? e.message : "Unbekannter Fehler"}
+				</AlertDescription>
+			</Alert>
 		);
 	}
 

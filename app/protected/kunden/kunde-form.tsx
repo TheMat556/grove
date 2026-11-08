@@ -1,8 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Kunde } from "@/lib/schemas/kunde";
@@ -43,8 +45,8 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 				<input type="hidden" name="id" defaultValue={kunde?.id} />
 			)}
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="name">Name</Label>
+			<Field data-invalid={!!state.errors?.name}>
+				<FieldLabel htmlFor="name">Name</FieldLabel>
 				<Input
 					id="name"
 					name="name"
@@ -52,13 +54,11 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 					defaultValue={kunde?.name}
 					aria-invalid={!!state.errors?.name}
 				/>
-				{state.errors?.name && (
-					<p className="text-sm text-destructive">{state.errors.name[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.name?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="telefon">Telefon</Label>
+			<Field data-invalid={!!state.errors?.telefon}>
+				<FieldLabel htmlFor="telefon">Telefon</FieldLabel>
 				<Input
 					id="telefon"
 					name="telefon"
@@ -66,13 +66,11 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 					defaultValue={kunde?.telefon}
 					aria-invalid={!!state.errors?.telefon}
 				/>
-				{state.errors?.telefon && (
-					<p className="text-sm text-destructive">{state.errors.telefon[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.telefon?.[0]}</FieldError>
+			</Field>
 
-			<div className="flex flex-col gap-1.5">
-				<Label htmlFor="adresse">Adresse</Label>
+			<Field data-invalid={!!state.errors?.adresse}>
+				<FieldLabel htmlFor="adresse">Adresse</FieldLabel>
 				<Input
 					id="adresse"
 					name="adresse"
@@ -80,10 +78,8 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 					defaultValue={kunde?.adresse}
 					aria-invalid={!!state.errors?.adresse}
 				/>
-				{state.errors?.adresse && (
-					<p className="text-sm text-destructive">{state.errors.adresse[0]}</p>
-				)}
-			</div>
+				<FieldError>{state.errors?.adresse?.[0]}</FieldError>
+			</Field>
 
 			<div className="flex items-center gap-2">
 				<Checkbox
@@ -95,7 +91,9 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 			</div>
 
 			{state.message && (
-				<p className="text-sm text-destructive">{state.message}</p>
+				<Alert variant="destructive">
+					<AlertDescription>{state.message}</AlertDescription>
+				</Alert>
 			)}
 
 			<Button type="submit" disabled={isPending} className="self-start">
