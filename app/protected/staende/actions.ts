@@ -1,7 +1,14 @@
 "use server";
 
-import { createStand, deleteStand, updateStand } from "@/lib/data/stand";
-import { standInsertSchema } from "@/lib/schemas/stand";
+import {
+	createStandMitStandort,
+	deleteStandMitStandort,
+	updateStandMitStandort,
+} from "@/lib/data/stand";
+import {
+	type StandMitStandortInput,
+	standMitStandortSchema,
+} from "@/lib/schemas/stand";
 import {
 	createEntityActions,
 	type EntityFormState,
@@ -14,16 +21,22 @@ const {
 	updateAction: updateStandAction,
 	deleteAction: deleteStandAction,
 } = createEntityActions({
-	insertSchema: standInsertSchema,
+	insertSchema: standMitStandortSchema,
 	mapInput: (formData) => ({
-		standort_id: formData.get("standort_id"),
 		bezeichnung: formData.get("bezeichnung"),
+		// Rohe Strings; z.coerce im Schema parst die PLZ (leeres Feld -> Feldfehler).
+		plz: formData.get("plz"),
+		ort: formData.get("ort"),
+		adresse: formData.get("adresse"),
 	}),
-	create: createStand,
-	update: updateStand,
-	remove: deleteStand,
+	create: createStandMitStandort,
+	// Adaptiert Partial<T> der Factory auf den vollständigen Input der Datenfunktion.
+	update: (id, input) =>
+		updateStandMitStandort(id, input as StandMitStandortInput),
+	remove: deleteStandMitStandort,
 	labels: { singular: "Stand" },
 	revalidatePath: "/protected/staende",
+	redirectOnUpdate: false,
 });
 
 export { createStandAction, deleteStandAction, updateStandAction };
