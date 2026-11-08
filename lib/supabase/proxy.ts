@@ -40,17 +40,18 @@ export async function updateSession(request: NextRequest) {
 	);
 
 	// Do not run code between createServerClient and
-	// supabase.auth.getClaims(). A simple mistake could make it very hard to debug
+	// supabase.auth.getUser(). A simple mistake could make it very hard to debug
 	// issues with users being randomly logged out.
 
-	// IMPORTANT: If you remove getClaims() and you use server-side rendering
-	// with the Supabase client, your users may be randomly logged out.
-	const { data } = await supabase.auth.getClaims();
-	const user = data?.claims;
+	// getUser() validates against the auth server. getClaims() alone accepts a
+	// JWT after its session/user was revoked (e.g. another tab logged out, or
+	// the local database was reset), which then crashes Server Components.
+	const { data, error } = await supabase.auth.getUser();
+	const user = data.user;
 
 	if (
 		request.nextUrl.pathname !== "/" &&
-		!user &&
+		(error || !user) &&
 		!request.nextUrl.pathname.startsWith("/login") &&
 		!request.nextUrl.pathname.startsWith("/auth")
 	) {

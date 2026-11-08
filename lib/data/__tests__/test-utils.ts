@@ -53,6 +53,17 @@ function uniqueEmail(): string {
 	return `test-${Date.now()}-${uidCounter}@test.test`;
 }
 
+let saisonYear = 2200;
+
+/** Eindeutiger, nicht überlappender Saison-Zeitraum für Fixtures. */
+export function uniqueSaisonRange() {
+	const year = saisonYear++;
+	return {
+		start_datum: `${year}-01-01`,
+		end_datum: `${year}-12-31`,
+	};
+}
+
 export async function createTestProfil(
 	overrides: Record<string, unknown> = {},
 ) {
@@ -163,8 +174,7 @@ export function createFixtures() {
 	async function createSaison(overrides: Overrides = {}) {
 		const saison = await crudSaison.create({
 			name: `test-${uid()}`,
-			start_datum: "2026-01-01",
-			end_datum: "2026-12-31",
+			...uniqueSaisonRange(),
 			...overrides,
 		});
 		remember("tb_saison", saison.id);
