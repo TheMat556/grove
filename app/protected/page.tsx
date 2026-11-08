@@ -4,7 +4,6 @@ import { getSaisonSelection } from "@/lib/saison-context";
 
 const links = [
 	{ href: "/protected/saisons", label: "Saisons" },
-	{ href: "/protected/standorte", label: "Standorte" },
 	{ href: "/protected/staende", label: "Stände" },
 	{ href: "/protected/produkte", label: "Produkte" },
 	{ href: "/protected/kunden", label: "Kunden" },

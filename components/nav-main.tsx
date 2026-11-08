@@ -1,7 +1,6 @@
 "use client";
 
 import {
-	Building2,
 	CalendarDays,
 	LayoutDashboard,
 	type LucideIcon,
@@ -28,7 +27,6 @@ type NavItem = {
 const items: NavItem[] = [
 	{ title: "Dashboard", url: "/protected", icon: LayoutDashboard },
 	{ title: "Saisons", url: "/protected/saisons", icon: CalendarDays },
-	{ title: "Standorte", url: "/protected/standorte", icon: Building2 },
 	{ title: "Stände", url: "/protected/staende", icon: TreePine },
 	{ title: "Produkte", url: "/protected/produkte", icon: Package },
 	{ title: "Kunden", url: "/protected/kunden", icon: Users },

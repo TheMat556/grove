@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type ConfirmDeleteFormProps = {
@@ -23,8 +24,13 @@ export function ConfirmDeleteForm({
 			}}
 		>
 			<input type="hidden" name="id" value={id} />
-			<Button variant="outline" size="sm" type="submit">
-				Löschen
+			<Button
+				variant="destructive"
+				size="icon-sm"
+				type="submit"
+				aria-label={`${entity} löschen`}
+			>
+				<Trash2 />
 			</Button>
 		</form>
 	);

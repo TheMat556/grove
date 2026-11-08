@@ -1,22 +1,23 @@
-import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
-import { getStaende } from "@/lib/data/stand";
-import { getStandorte } from "@/lib/data/standort";
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { getStaendeMitStandort } from "@/lib/data/stand";
 import { ConfirmDeleteForm } from "../_crud/confirm-delete-form";
 import { deleteStandAction } from "./actions";
+import { StandDialog } from "./stand-dialog";
 
 export async function StaendeList() {
-	let staende: Awaited<ReturnType<typeof getStaende>>;
+	let staende: Awaited<ReturnType<typeof getStaendeMitStandort>>;
 	try {
-		staende = await getStaende();
+		staende = await getStaendeMitStandort();
 	} catch (e) {
 		return (
 			<Alert variant="destructive">
@@ -35,43 +36,51 @@ export async function StaendeList() {
 		);
 	}
 
-	// Fehlende Standorte dürfen die Stände-Liste nicht killen – Label fällt auf "–" zurück.
-	let standorte: Awaited<ReturnType<typeof getStandorte>>;
-	try {
-		standorte = await getStandorte();
-	} catch {
-		standorte = [];
-	}
-	const standortByStand = new Map(standorte.map((s) => [s.id, s]));
-
 	return (
-		<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-			{staende.map((stand) => {
-				const standort = standortByStand.get(stand.standort_id);
-				return (
-					<Card key={stand.id}>
-						<CardHeader>
-							<CardTitle>{stand.bezeichnung}</CardTitle>
-							<CardDescription>
-								{standort ? `${standort.plz} ${standort.ort}` : "–"}
-							</CardDescription>
-						</CardHeader>
-						<CardFooter className="gap-2">
-							<Link
-								href={`/protected/staende/${stand.id}`}
-								className={buttonVariants({ variant: "outline", size: "sm" })}
-							>
-								Bearbeiten
-							</Link>
-							<ConfirmDeleteForm
-								action={deleteStandAction}
-								id={stand.id}
-								entity="Stand"
-							/>
-						</CardFooter>
-					</Card>
-				);
-			})}
+		<div className="rounded-xl border">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Bezeichnung</TableHead>
+						<TableHead>PLZ</TableHead>
+						<TableHead>Ort</TableHead>
+						<TableHead>Adresse</TableHead>
+						<TableHead className="text-right">Aktion</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{staende.map((stand) => (
+						<TableRow key={stand.id}>
+							<TableCell className="font-medium">{stand.bezeichnung}</TableCell>
+							<TableCell>{stand.standort?.plz ?? "–"}</TableCell>
+							<TableCell>{stand.standort?.ort ?? "–"}</TableCell>
+							<TableCell>{stand.standort?.adresse ?? "–"}</TableCell>
+							<TableCell>
+								<div className="flex justify-end gap-2">
+									<StandDialog
+										mode="edit"
+										stand={stand}
+										trigger={
+											<Button
+												variant="ghost"
+												size="icon-sm"
+												aria-label="Stand bearbeiten"
+											>
+												<Pencil />
+											</Button>
+										}
+									/>
+									<ConfirmDeleteForm
+										action={deleteStandAction}
+										id={stand.id}
+										entity="Stand"
+									/>
+								</div>
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }
