@@ -1,17 +1,20 @@
-import Link from "next/link";
+import { Pencil } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
-	Card,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "@/components/ui/card";
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { getKunden } from "@/lib/data/kunde";
 import { ConfirmDeleteForm } from "../_crud/confirm-delete-form";
 import { deleteKundeAction } from "./actions";
+import { KundeDialog } from "./kunde-dialog";
 
+/** Kundenliste als Tabelle mit Bearbeiten-Dialog und Löschen je Zeile. */
 export async function KundenList() {
 	let kunden: Awaited<ReturnType<typeof getKunden>>;
 	try {
@@ -35,30 +38,50 @@ export async function KundenList() {
 	}
 
 	return (
-		<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-			{kunden.map((kunde) => (
-				<Card key={kunde.id}>
-					<CardHeader>
-						<CardTitle>{kunde.name}</CardTitle>
-						<CardDescription>
-							{kunde.ist_firma ? "Firma" : "Privat"} · {kunde.telefon}
-						</CardDescription>
-					</CardHeader>
-					<CardFooter className="gap-2">
-						<Link
-							href={`/protected/kunden/${kunde.id}`}
-							className={buttonVariants({ variant: "outline", size: "sm" })}
-						>
-							Bearbeiten
-						</Link>
-						<ConfirmDeleteForm
-							action={deleteKundeAction}
-							id={kunde.id}
-							entity="Kunde"
-						/>
-					</CardFooter>
-				</Card>
-			))}
+		<div className="rounded-xl border">
+			<Table>
+				<TableHeader>
+					<TableRow>
+						<TableHead>Name</TableHead>
+						<TableHead>Typ</TableHead>
+						<TableHead>Telefon</TableHead>
+						<TableHead>Adresse</TableHead>
+						<TableHead className="text-right">Aktion</TableHead>
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{kunden.map((kunde) => (
+						<TableRow key={kunde.id}>
+							<TableCell className="font-medium">{kunde.name}</TableCell>
+							<TableCell>{kunde.ist_firma ? "Firma" : "Privat"}</TableCell>
+							<TableCell>{kunde.telefon}</TableCell>
+							<TableCell>{kunde.adresse}</TableCell>
+							<TableCell>
+								<div className="flex justify-end gap-2">
+									<KundeDialog
+										mode="edit"
+										kunde={kunde}
+										trigger={
+											<Button
+												variant="ghost"
+												size="icon-sm"
+												aria-label="Kunde bearbeiten"
+											>
+												<Pencil />
+											</Button>
+										}
+									/>
+									<ConfirmDeleteForm
+										action={deleteKundeAction}
+										id={kunde.id}
+										entity="Kunde"
+									/>
+								</div>
+							</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
 		</div>
 	);
 }
