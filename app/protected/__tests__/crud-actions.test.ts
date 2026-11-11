@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createKunde, deleteKunde, updateKunde } from "@/lib/data/kunde";
 import {
 	createProdukt,
 	deleteProdukt,
@@ -29,6 +30,7 @@ vi.mock("@/lib/data/session", () => ({
 
 import {
 	createKundeAction,
+	deleteKundeAction,
 	type KundeFormState,
 	updateKundeAction,
 } from "@/app/protected/kunden/actions";
@@ -54,13 +56,24 @@ describe("kunden actions", () => {
 		adresse: "Bahnhofstraße 5",
 	};
 
-	it("create: unchecked checkbox saves ist_firma=false", async () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("create: unchecked checkbox saves ist_firma=false and revalidates", async () => {
 		const state: KundeFormState = await createKundeAction(
 			{},
 			formMitWerten(basis),
 		);
 		expect(state.errors).toBeUndefined();
 		expect(state.success).toBe(true);
+		expect(createKunde).toHaveBeenCalledWith({
+			name: "Maria Huber",
+			telefon: "+43 664 1234567",
+			adresse: "Bahnhofstraße 5",
+			ist_firma: false,
+		});
+		expect(revalidatePath).toHaveBeenCalledWith("/protected/kunden");
 	});
 
 	it("create: missing name yields field error, not a DB call", async () => {
@@ -70,6 +83,7 @@ describe("kunden actions", () => {
 		);
 		expect(state.errors?.name).toBeDefined();
 		expect(state.message).toBeUndefined();
+		expect(createKunde).not.toHaveBeenCalled();
 	});
 
 	it("update: missing id is rejected before validation", async () => {
@@ -79,6 +93,31 @@ describe("kunden actions", () => {
 		);
 		expect(state.message).toBeDefined();
 		expect(state.errors).toBeUndefined();
+		expect(updateKunde).not.toHaveBeenCalled();
+	});
+
+	it("update: valid form returns success for the dialog and revalidates", async () => {
+		const state: KundeFormState = await updateKundeAction(
+			{},
+			formMitWerten({ id: "kunde-1", ...basis, ist_firma: "on" }),
+		);
+
+		expect(state).toEqual({ success: true });
+		expect(updateKunde).toHaveBeenCalledWith("kunde-1", {
+			name: "Maria Huber",
+			telefon: "+43 664 1234567",
+			adresse: "Bahnhofstraße 5",
+			ist_firma: true,
+		});
+		expect(revalidatePath).toHaveBeenCalledWith("/protected/kunden");
+		expect(redirect).not.toHaveBeenCalled();
+	});
+
+	it("delete: removes the customer and revalidates", async () => {
+		await deleteKundeAction(formMitWerten({ id: "kunde-1" }));
+
+		expect(deleteKunde).toHaveBeenCalledWith("kunde-1");
+		expect(revalidatePath).toHaveBeenCalledWith("/protected/kunden");
 	});
 });
 

@@ -26,6 +26,8 @@ const {
 	remove: deleteKunde,
 	labels: { singular: "Kunde" },
 	revalidatePath: "/protected/kunden",
+	// Dialog-Formular schließt sich über { success: true } statt Redirect.
+	redirectOnUpdate: false,
 });
 
 export { createKundeAction, deleteKundeAction, updateKundeAction };
