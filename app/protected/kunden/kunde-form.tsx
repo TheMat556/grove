@@ -19,36 +19,33 @@ const initialState: KundeFormState = {};
 type KundeFormProps = {
 	mode: "create" | "edit";
 	kunde?: Kunde;
+	onSuccess?: () => void;
 };
 
-export function KundeForm({ mode, kunde }: KundeFormProps) {
+/** Formular für einen Kunden; meldet Erfolg an den umgebenden Dialog. */
+export function KundeForm({ mode, kunde, onSuccess }: KundeFormProps) {
 	const [state, formAction, isPending] = useActionState(
 		mode === "create" ? createKundeAction : updateKundeAction,
 		initialState,
 	);
 	const formRef = useRef<HTMLFormElement>(null);
 
-	// Nach erfolgreichem Anlegen das Formular zurücksetzen (nur im Create-Modus).
 	useEffect(() => {
-		if (state.success && mode === "create") {
-			formRef.current?.reset();
-		}
-	}, [state.success, mode]);
+		if (!state.success) return;
+		formRef.current?.reset();
+		onSuccess?.();
+	}, [state.success, onSuccess]);
 
 	return (
-		<form
-			ref={formRef}
-			action={formAction}
-			className="flex flex-col gap-4 max-w-md"
-		>
+		<form ref={formRef} action={formAction} className="flex flex-col gap-4">
 			{mode === "edit" && (
 				<input type="hidden" name="id" defaultValue={kunde?.id} />
 			)}
 
 			<Field data-invalid={!!state.errors?.name}>
-				<FieldLabel htmlFor="name">Name</FieldLabel>
+				<FieldLabel htmlFor={`${mode}-name`}>Name</FieldLabel>
 				<Input
-					id="name"
+					id={`${mode}-name`}
 					name="name"
 					placeholder="z. B. Maria Huber"
 					defaultValue={kunde?.name}
@@ -58,9 +55,9 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 			</Field>
 
 			<Field data-invalid={!!state.errors?.telefon}>
-				<FieldLabel htmlFor="telefon">Telefon</FieldLabel>
+				<FieldLabel htmlFor={`${mode}-telefon`}>Telefon</FieldLabel>
 				<Input
-					id="telefon"
+					id={`${mode}-telefon`}
 					name="telefon"
 					placeholder="z. B. +43 664 1234567"
 					defaultValue={kunde?.telefon}
@@ -70,9 +67,9 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 			</Field>
 
 			<Field data-invalid={!!state.errors?.adresse}>
-				<FieldLabel htmlFor="adresse">Adresse</FieldLabel>
+				<FieldLabel htmlFor={`${mode}-adresse`}>Adresse</FieldLabel>
 				<Input
-					id="adresse"
+					id={`${mode}-adresse`}
 					name="adresse"
 					placeholder="z. B. Bahnhofstraße 5"
 					defaultValue={kunde?.adresse}
@@ -83,11 +80,11 @@ export function KundeForm({ mode, kunde }: KundeFormProps) {
 
 			<div className="flex items-center gap-2">
 				<Checkbox
-					id="ist_firma"
+					id={`${mode}-ist_firma`}
 					name="ist_firma"
 					defaultChecked={kunde?.ist_firma}
 				/>
-				<Label htmlFor="ist_firma">Firmenkunde</Label>
+				<Label htmlFor={`${mode}-ist_firma`}>Firmenkunde</Label>
 			</div>
 
 			{state.message && (
