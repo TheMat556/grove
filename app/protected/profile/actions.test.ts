@@ -5,20 +5,24 @@ const { revalidatePath, redirect } = vi.hoisted(() => ({
 	redirect: vi.fn(),
 }));
 
-const { updateProfil, getCurrentProfil, getCurrentProfilId } = vi.hoisted(
-	() => ({
-		updateProfil: vi.fn(async () => ({})),
-		getCurrentProfil: vi.fn(),
-		getCurrentProfilId: vi.fn(async () => "profil-1"),
-	}),
-);
+const {
+	updateProfil,
+	createProfilMitAuth,
+	getCurrentProfil,
+	getCurrentProfilId,
+} = vi.hoisted(() => ({
+	updateProfil: vi.fn(async () => ({})),
+	createProfilMitAuth: vi.fn(async () => ({})),
+	getCurrentProfil: vi.fn(),
+	getCurrentProfilId: vi.fn(async () => "profil-1"),
+}));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
 vi.mock("next/navigation", () => ({ redirect }));
-vi.mock("@/lib/data/profil", () => ({ updateProfil }));
+vi.mock("@/lib/data/profil", () => ({ updateProfil, createProfilMitAuth }));
 vi.mock("@/lib/data/session", () => ({ getCurrentProfil, getCurrentProfilId }));
 
-import { updateProfilAction } from "./actions";
+import { createProfilAction, updateProfilAction } from "./actions";
 
 function formDataOf(entries: Record<string, string> = {}): FormData {
 	const fd = new FormData();
@@ -32,6 +36,15 @@ const vollerDatensatz = formDataOf({
 	id: "profil-2",
 	name: "Neuer Name",
 	telefon: "+43 664 000",
+});
+
+const neuesProfil = formDataOf({
+	email: "maria@grove.de",
+	passwort: "sicheresPasswort",
+	name: "Maria Huber",
+	rolle: "mitarbeiter",
+	telefon: "+43 664 111",
+	aktiv: "on",
 });
 
 describe("updateProfilAction – Rollen-Guard", () => {
@@ -68,5 +81,47 @@ describe("updateProfilAction – Rollen-Guard", () => {
 			"profil-2",
 			expect.objectContaining({ name: "Neuer Name" }),
 		);
+	});
+});
+
+describe("createProfilAction – Anlegen nur für Admins", () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("verbietet Mitarbeitern das Anlegen von Profilen", async () => {
+		getCurrentProfil.mockResolvedValue({
+			id: "profil-1",
+			rolle: "mitarbeiter",
+		});
+		const state = await createProfilAction({}, neuesProfil);
+		expect(state.message).toBe("Keine Berechtigung.");
+		expect(createProfilMitAuth).not.toHaveBeenCalled();
+	});
+
+	it("legt als Admin das Profil mit den Formulardaten an", async () => {
+		getCurrentProfil.mockResolvedValue({ id: "profil-1", rolle: "admin" });
+		const state = await createProfilAction({}, neuesProfil);
+		expect(state.success).toBe(true);
+		expect(createProfilMitAuth).toHaveBeenCalledWith({
+			email: "maria@grove.de",
+			passwort: "sicheresPasswort",
+			name: "Maria Huber",
+			rolle: "mitarbeiter",
+			telefon: "+43 664 111",
+			aktiv: true,
+		});
+	});
+
+	it("meldet Feldfehler, ohne anzulegen", async () => {
+		getCurrentProfil.mockResolvedValue({ id: "profil-1", rolle: "admin" });
+		const state = await createProfilAction(
+			{},
+			formDataOf({ email: "keine-mail", passwort: "kurz", name: "" }),
+		);
+		expect(state.errors?.email).toBeDefined();
+		expect(state.errors?.passwort).toBeDefined();
+		expect(state.errors?.name).toBeDefined();
+		expect(createProfilMitAuth).not.toHaveBeenCalled();
 	});
 });
