@@ -30,17 +30,10 @@ type ProfilFormProps = {
 	mode: "create" | "edit";
 	profil?: ProfilFormValues;
 	onSuccess?: () => void;
-	/** Meldet dem Dialog, ob gerade gespeichert wird (Schließen blockieren). */
-	onPendingChange?: (pending: boolean) => void;
 };
 
 /** Formular für ein Profil; meldet Erfolg an den umgebenden Dialog. */
-export function ProfilForm({
-	mode,
-	profil,
-	onSuccess,
-	onPendingChange,
-}: ProfilFormProps) {
+export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
 	const [state, formAction, isPending] = useActionState(
 		mode === "create" ? createProfilAction : updateProfilAction,
 		initialState,
@@ -54,12 +47,6 @@ export function ProfilForm({
 	useEffect(() => {
 		if (state.success && mode === "edit") onSuccess?.();
 	}, [state.success, mode, onSuccess]);
-
-	useEffect(() => {
-		onPendingChange?.(isPending);
-		// Beim Unmount (z. B. Erfolgsanzeige) wieder freigeben.
-		return () => onPendingChange?.(false);
-	}, [isPending, onPendingChange]);
 
 	// Nach dem Anlegen nur noch die Zugangsdaten zeigen: Formular unmountet,
 	// damit die Werte nicht nachträglich verändert werden können.
