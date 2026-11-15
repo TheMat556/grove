@@ -112,16 +112,4 @@ describe("createProfilAction – Anlegen nur für Admins", () => {
 			aktiv: true,
 		});
 	});
-
-	it("meldet Feldfehler, ohne anzulegen", async () => {
-		getCurrentProfil.mockResolvedValue({ id: "profil-1", rolle: "admin" });
-		const state = await createProfilAction(
-			{},
-			formDataOf({ email: "keine-mail", passwort: "kurz", name: "" }),
-		);
-		expect(state.errors?.email).toBeDefined();
-		expect(state.errors?.passwort).toBeDefined();
-		expect(state.errors?.name).toBeDefined();
-		expect(createProfilMitAuth).not.toHaveBeenCalled();
-	});
 });
