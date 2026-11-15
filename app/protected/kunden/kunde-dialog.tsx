@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactElement } from "react";
 import type { Kunde } from "@/lib/schemas/kunde";
 import { CrudDialog } from "../_crud/crud-dialog";
