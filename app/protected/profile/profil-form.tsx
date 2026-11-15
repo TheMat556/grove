@@ -30,10 +30,17 @@ type ProfilFormProps = {
 	mode: "create" | "edit";
 	profil?: ProfilFormValues;
 	onSuccess?: () => void;
+	/** Meldet dem Dialog, ob gerade gespeichert wird (Schließen blockieren). */
+	onPendingChange?: (pending: boolean) => void;
 };
 
 /** Formular für ein Profil; meldet Erfolg an den umgebenden Dialog. */
-export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
+export function ProfilForm({
+	mode,
+	profil,
+	onSuccess,
+	onPendingChange,
+}: ProfilFormProps) {
 	const [state, formAction, isPending] = useActionState(
 		mode === "create" ? createProfilAction : updateProfilAction,
 		initialState,
@@ -47,6 +54,12 @@ export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
 	useEffect(() => {
 		if (state.success && mode === "edit") onSuccess?.();
 	}, [state.success, mode, onSuccess]);
+
+	useEffect(() => {
+		onPendingChange?.(isPending);
+		// Beim Unmount (z. B. Erfolgsanzeige) wieder freigeben.
+		return () => onPendingChange?.(false);
+	}, [isPending, onPendingChange]);
 
 	// Nach dem Anlegen nur noch die Zugangsdaten zeigen: Formular unmountet,
 	// damit die Werte nicht nachträglich verändert werden können.
@@ -79,6 +92,9 @@ export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
 							placeholder="z. B. maria@grove.de"
 							value={email}
 							onChange={(e) => setEmail(e.target.value)}
+							// Während des Requests nicht änderbar: die Erfolgsanzeige
+							// zeigt die tatsächlich gesendeten Zugangsdaten.
+							disabled={isPending}
 							aria-invalid={!!state.errors?.email}
 						/>
 						<FieldError>{state.errors?.email?.[0]}</FieldError>
@@ -91,8 +107,10 @@ export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
 								id="passwort"
 								name="passwort"
 								className="font-mono"
+								autoComplete="new-password"
 								value={passwort}
 								onChange={(e) => setPasswort(e.target.value)}
+								disabled={isPending}
 								aria-invalid={!!state.errors?.passwort}
 							/>
 							<Button
@@ -100,6 +118,7 @@ export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
 								variant="outline"
 								size="icon"
 								aria-label="Passwort neu generieren"
+								disabled={isPending}
 								onClick={() => setPasswort(erzeugePasswort())}
 							>
 								<RefreshCw />

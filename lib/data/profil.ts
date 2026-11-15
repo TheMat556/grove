@@ -53,8 +53,18 @@ export async function createProfilMitAuth(input: ProfilCreate): Promise<Row> {
 		.select()
 		.single();
 	if (profilError) {
+		// Kompensation: den eben angelegten Auth-User wieder entfernen, damit
+		// kein bestätigtes Konto mit Standardprofil zurückbleibt. Scheitert das
+		// ebenfalls, steht die User-ID in der Meldung, damit sie sich manuell
+		// aufräumen lässt – der ursprüngliche Fehler bleibt erhalten.
+		const { error: deleteError } = await supabase.auth.admin.deleteUser(
+			data.user.id,
+		);
 		throw new Error(
-			`Profil wurde angelegt, aber nicht gespeichert: ${profilError.message}`,
+			`Profil konnte nicht gespeichert werden: ${profilError.message}` +
+				(deleteError
+					? ` (Auth-User ${data.user.id} blieb bestehen: ${deleteError.message})`
+					: ""),
 		);
 	}
 
