@@ -29,11 +29,19 @@ type ProfilDialogProps = {
  */
 export function ProfilDialog({ mode, profil, trigger }: ProfilDialogProps) {
 	const [open, setOpen] = useState(false);
+	const [speichert, setSpeichert] = useState(false);
 	// Stabil halten: sonst re-triggert das Success-State des Formulars den Effect.
 	const close = useCallback(() => setOpen(false), []);
 
+	// Während des Speicherns nicht schließen: sonst ist das generierte Passwort
+	// weg, obwohl das Konto serverseitig schon entsteht. Danach wieder normal.
+	const handleOpenChange = (next: boolean) => {
+		if (!next && speichert) return;
+		setOpen(next);
+	};
+
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={handleOpenChange}>
 			<DialogTrigger render={trigger} />
 			<DialogContent className="sm:max-w-md">
 				<DialogHeader>
@@ -52,6 +60,7 @@ export function ProfilDialog({ mode, profil, trigger }: ProfilDialogProps) {
 					mode={mode}
 					profil={profil}
 					onSuccess={mode === "edit" ? close : undefined}
+					onPendingChange={setSpeichert}
 				/>
 			</DialogContent>
 		</Dialog>
