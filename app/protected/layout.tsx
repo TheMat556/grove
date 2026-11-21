@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { MobileNav } from "@/components/mobile-nav";
 import { SaisonSwitcher } from "@/components/saison-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Separator } from "@/components/ui/separator";
@@ -22,6 +23,7 @@ export default function ProtectedLayout({
 				<AppSidebar />
 			</Suspense>
 			<SidebarInset>
+				<MobileNav />
 				<header className="flex h-12 shrink-0 items-center gap-2 bg-transparent">
 					<div className="flex w-full items-center gap-1 px-3 lg:gap-2 lg:px-4">
 						<SidebarTrigger className="-ml-1" />
@@ -39,7 +41,7 @@ export default function ProtectedLayout({
 				</header>
 				<div
 					className={cn(
-						"flex min-h-0 flex-1 flex-col rounded-xl bg-background p-4 shadow-sm md:mx-2 md:mb-2 max-md:mx-0 max-md:mb-0 max-md:rounded-b-none max-md:shadow-none",
+						"flex min-h-0 flex-1 flex-col rounded-xl bg-background p-4 shadow-sm md:mx-2 md:mb-2 max-md:mx-0 max-md:mb-0 max-md:rounded-b-none max-md:shadow-none max-md:overflow-y-auto max-md:pb-24",
 					)}
 				>
 					{children}
