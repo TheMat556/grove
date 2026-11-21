@@ -18,11 +18,15 @@ import {
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-type NavItem = {
+export type NavItem = {
 	title: string;
 	url: string;
 	icon: LucideIcon;
 };
+
+export function isActive(pathname: string, url: string) {
+	return url === "/protected" ? pathname === url : pathname.startsWith(url);
+}
 
 const items: NavItem[] = [
 	{ title: "Dashboard", url: "/protected", icon: LayoutDashboard },
@@ -43,11 +47,7 @@ export function NavMain() {
 					<SidebarMenuItem key={item.title}>
 						<SidebarMenuButton
 							tooltip={item.title}
-							isActive={
-								item.url === "/protected"
-									? pathname === item.url
-									: pathname.startsWith(item.url)
-							}
+							isActive={isActive(pathname, item.url)}
 							className="font-semibold text-muted-foreground data-active:font-semibold"
 							render={<Link href={item.url} />}
 						>
