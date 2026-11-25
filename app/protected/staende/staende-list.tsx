@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -15,18 +14,7 @@ import { deleteStandAction } from "./actions";
 import { StandDialog } from "./stand-dialog";
 
 export async function StaendeList() {
-	let staende: Awaited<ReturnType<typeof getStaendeMitStandort>>;
-	try {
-		staende = await getStaendeMitStandort();
-	} catch (e) {
-		return (
-			<Alert variant="destructive">
-				<AlertDescription>
-					{e instanceof Error ? e.message : "Unbekannter Fehler"}
-				</AlertDescription>
-			</Alert>
-		);
-	}
+	const staende = await getStaendeMitStandort();
 
 	if (staende.length === 0) {
 		return (

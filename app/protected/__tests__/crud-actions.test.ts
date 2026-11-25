@@ -40,19 +40,13 @@ import {
 	type ProduktFormState,
 	updateProduktAction,
 } from "@/app/protected/produkte/actions";
-
-function formMitWerten(werte: Record<string, string>) {
-	const formData = new FormData();
-	for (const [key, value] of Object.entries(werte)) {
-		formData.set(key, value);
-	}
-	return formData;
-}
+import { formMitWerten } from "./test-utils";
 
 describe("kunden actions", () => {
 	const basis = {
 		name: "Maria Huber",
 		telefon: "+43 664 1234567",
+		plz: "3100",
 		adresse: "Bahnhofstraße 5",
 	};
 
@@ -70,10 +64,40 @@ describe("kunden actions", () => {
 		expect(createKunde).toHaveBeenCalledWith({
 			name: "Maria Huber",
 			telefon: "+43 664 1234567",
+			plz: "3100",
 			adresse: "Bahnhofstraße 5",
 			ist_firma: false,
 		});
 		expect(revalidatePath).toHaveBeenCalledWith("/protected/kunden");
+	});
+
+	it("create: returns the created customer for inline selection", async () => {
+		vi.mocked(createKunde).mockResolvedValueOnce({
+			id: "kunde-1",
+			name: "Maria Huber",
+		} as Awaited<ReturnType<typeof createKunde>>);
+
+		const state: KundeFormState = await createKundeAction(
+			{},
+			formMitWerten(basis),
+		);
+
+		expect(state).toEqual({
+			success: true,
+			kunde: { id: "kunde-1", name: "Maria Huber" },
+		});
+	});
+
+	it("create: DB error becomes a message, not a throw", async () => {
+		vi.mocked(createKunde).mockRejectedValueOnce(new Error("Kunde kaputt"));
+
+		const state: KundeFormState = await createKundeAction(
+			{},
+			formMitWerten(basis),
+		);
+
+		expect(state.message).toContain("Kunde kaputt");
+		expect(state.success).toBeUndefined();
 	});
 
 	it("create: missing name yields field error, not a DB call", async () => {
@@ -106,6 +130,7 @@ describe("kunden actions", () => {
 		expect(updateKunde).toHaveBeenCalledWith("kunde-1", {
 			name: "Maria Huber",
 			telefon: "+43 664 1234567",
+			plz: "3100",
 			adresse: "Bahnhofstraße 5",
 			ist_firma: true,
 		});

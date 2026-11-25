@@ -1,7 +1,7 @@
 "use client";
 
 import { RefreshCw } from "lucide-react";
-import { useActionState, useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { erzeugePasswort } from "@/lib/passwort";
 import { selectClasses } from "../_crud/select-classes";
+import { useServerForm } from "../_crud/use-server-form";
 import {
 	createProfilAction,
 	type ProfilFormState,
@@ -34,19 +35,18 @@ type ProfilFormProps = {
 
 /** Formular für ein Profil; meldet Erfolg an den umgebenden Dialog. */
 export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
-	const [state, formAction, isPending] = useActionState(
+	const { state, isPending, formProps } = useServerForm(
 		mode === "create" ? createProfilAction : updateProfilAction,
 		initialState,
+		// Beim Anlegen ersetzt die Zugangsdaten-Anzeige das Formular; ein
+		// Schließen wäre dort falsch.
+		mode === "edit" ? onSuccess : undefined,
 	);
 	// Passwort wird beim Öffnen generiert und bleibt sichtbar – der Admin muss
 	// es der neuen Person weitergeben. Nach Erfolg gilt das gesendete Passwort;
 	// die Felder werden daher nicht weiter verändert.
 	const [passwort, setPasswort] = useState(() => erzeugePasswort());
 	const [email, setEmail] = useState("");
-
-	useEffect(() => {
-		if (state.success && mode === "edit") onSuccess?.();
-	}, [state.success, mode, onSuccess]);
 
 	// Nach dem Anlegen nur noch die Zugangsdaten zeigen: Formular unmountet,
 	// damit die Werte nicht nachträglich verändert werden können.
@@ -63,7 +63,7 @@ export function ProfilForm({ mode, profil, onSuccess }: ProfilFormProps) {
 	}
 
 	return (
-		<form action={formAction} className="flex flex-col gap-4">
+		<form {...formProps} className="flex flex-col gap-4">
 			{mode === "edit" && (
 				<input type="hidden" name="id" defaultValue={profil?.id} />
 			)}

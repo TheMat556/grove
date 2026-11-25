@@ -54,8 +54,6 @@ const { createAction: createProfilAction, updateAction: updateProfilAction } =
 		},
 		labels: { singular: "Profil" },
 		revalidatePath: "/protected/profile",
-		// Dialog-Formular schließt sich über { success: true } statt Redirect.
-		redirectOnUpdate: false,
 	});
 
 export { createProfilAction, updateProfilAction };

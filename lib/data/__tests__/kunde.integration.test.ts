@@ -21,7 +21,8 @@ describe.skipIf(!hasSupabase)("tb_kunde CRUD", () => {
 	it("creates kunde with ist_firma=false by default", async () => {
 		const kunde = await crud.create({
 			name: `test-${uid()}`,
-			telefon: `+49-${uid()}`,
+			telefon: "+49 664 1234567",
+			plz: "3100",
 			adresse: `${uid()}-Straße 1, 12345 Stadt`,
 			ist_firma: false,
 		});
@@ -32,7 +33,8 @@ describe.skipIf(!hasSupabase)("tb_kunde CRUD", () => {
 	it("creates kunde with ist_firma=true", async () => {
 		const kunde = await crud.create({
 			name: `test-${uid()}`,
-			telefon: `+49-${uid()}`,
+			telefon: "+49 664 1234567",
+			plz: "3100",
 			adresse: `${uid()}-Straße 1, 12345 Stadt`,
 			ist_firma: true,
 		});
@@ -43,7 +45,8 @@ describe.skipIf(!hasSupabase)("tb_kunde CRUD", () => {
 	it("reads all kunden", async () => {
 		const created = await crud.create({
 			name: `test-${uid()}`,
-			telefon: `+49-${uid()}`,
+			telefon: "+49 664 1234567",
+			plz: "3100",
 			adresse: `${uid()}-Straße 1, 12345 Stadt`,
 			ist_firma: false,
 		});
@@ -56,7 +59,8 @@ describe.skipIf(!hasSupabase)("tb_kunde CRUD", () => {
 	it("updates kunde name", async () => {
 		const kunde = await crud.create({
 			name: `test-${uid()}`,
-			telefon: `+49-${uid()}`,
+			telefon: "+49 664 1234567",
+			plz: "3100",
 			adresse: `${uid()}-Straße 1, 12345 Stadt`,
 			ist_firma: false,
 		});
@@ -69,7 +73,8 @@ describe.skipIf(!hasSupabase)("tb_kunde CRUD", () => {
 	it("deletes kunde", async () => {
 		const kunde = await crud.create({
 			name: `test-${uid()}`,
-			telefon: `+49-${uid()}`,
+			telefon: "+49 664 1234567",
+			plz: "3100",
 			adresse: `${uid()}-Straße 1, 12345 Stadt`,
 			ist_firma: false,
 		});

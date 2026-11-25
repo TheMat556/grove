@@ -1,15 +1,8 @@
 "use client";
 
-import { type ReactElement, useState } from "react";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogHeader,
-	DialogTitle,
-	DialogTrigger,
-} from "@/components/ui/dialog";
+import type { ReactElement } from "react";
 import type { Saison } from "@/lib/schemas/saison";
+import { CrudDialog } from "../_crud/crud-dialog";
 import { SaisonForm } from "./saison-form";
 
 type SaisonDialogProps = {
@@ -18,31 +11,23 @@ type SaisonDialogProps = {
 	trigger: ReactElement;
 };
 
+/** Dialog zum Anlegen oder Bearbeiten einer Saison; schließt nach Erfolg. */
 export function SaisonDialog({ mode, saison, trigger }: SaisonDialogProps) {
-	const [open, setOpen] = useState(false);
-
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger render={trigger} />
-			<DialogContent className="sm:max-w-md">
-				<DialogHeader>
-					<DialogTitle>
-						{mode === "create"
-							? "Saison anlegen"
-							: `Saison bearbeiten: ${saison?.name}`}
-					</DialogTitle>
-					<DialogDescription>
-						{mode === "create"
-							? "Neue Saison mit Zeitraum anlegen."
-							: "Name oder Zeitraum ändern."}
-					</DialogDescription>
-				</DialogHeader>
-				<SaisonForm
-					mode={mode}
-					saison={saison}
-					onSuccess={() => setOpen(false)}
-				/>
-			</DialogContent>
-		</Dialog>
+		<CrudDialog
+			trigger={trigger}
+			title={
+				mode === "create"
+					? "Saison anlegen"
+					: `Saison bearbeiten: ${saison?.name}`
+			}
+			description={
+				mode === "create"
+					? "Neue Saison mit Zeitraum anlegen."
+					: "Name oder Zeitraum ändern."
+			}
+		>
+			{(close) => <SaisonForm mode={mode} saison={saison} onSuccess={close} />}
+		</CrudDialog>
 	);
 }

@@ -1,11 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
+import { uuidSchema } from "@/lib/schemas/common";
 import { reservierungInsertSchema } from "@/lib/schemas/reservierung";
 import { createFixtures, createTestCrud, hasSupabase } from "./test-utils";
 
 const crudReservierung = createTestCrud({
 	table: "tb_reservierung",
 	insertSchema: reservierungInsertSchema,
+	// profil_id ist kein Client-Feld (s. lib/data/reservierung.ts).
+	createSchema: reservierungInsertSchema.extend({ profil_id: uuidSchema }),
 	labels: { singular: "Reservierung", plural: "Reservierungen" },
 });
 

@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -14,18 +13,7 @@ import { ProfilDialog } from "./profil-dialog";
 
 /** Profilliste als Tabelle mit Bearbeiten-Dialog je Zeile. */
 export async function ProfileList() {
-	let profile: Awaited<ReturnType<typeof getProfile>>;
-	try {
-		profile = await getProfile();
-	} catch (e) {
-		return (
-			<Alert variant="destructive">
-				<AlertDescription>
-					{e instanceof Error ? e.message : "Unbekannter Fehler"}
-				</AlertDescription>
-			</Alert>
-		);
-	}
+	const profile = await getProfile();
 
 	if (profile.length === 0) {
 		return (

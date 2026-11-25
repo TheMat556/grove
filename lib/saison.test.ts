@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	defaultSaison,
+	formatIsoDatum,
 	istAktiv,
 	parseIsoDate,
 	type Saison,
@@ -46,6 +47,12 @@ describe("Datumsumwandlung", () => {
 		expect(date?.getMonth()).toBe(9);
 		expect(date?.getDate()).toBe(1);
 		expect(parseIsoDate("kein-datum")).toBeUndefined();
+	});
+
+	it("verwirft ungültige Kalendertage statt sie zu rollen", () => {
+		expect(parseIsoDate("2026-02-30")).toBeUndefined();
+		expect(formatIsoDatum("2026-02-30")).toBe("2026-02-30");
+		expect(formatIsoDatum("2026-02-28")).toBe("28.2.2026");
 	});
 });
 

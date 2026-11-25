@@ -16,12 +16,10 @@ export function KundeDialog({ mode, kunde, trigger }: KundeDialogProps) {
 	return (
 		<CrudDialog
 			trigger={trigger}
-			title={
-				mode === "create" ? "Kunde anlegen" : `Kunde bearbeiten: ${kunde?.name}`
-			}
+			title={mode === "create" ? "Kunde anlegen" : "Kunde bearbeiten"}
 			description={
 				mode === "create"
-					? "Neuen Kunden mit Kontaktdaten anlegen."
+					? "Name, Kontaktdaten und Kundentyp erfassen."
 					: "Name, Kontaktdaten oder Kundentyp ändern."
 			}
 		>

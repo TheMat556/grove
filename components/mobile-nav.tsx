@@ -1,81 +1,31 @@
 "use client";
 
-import { Home, Plus, Receipt, Settings, Users } from "lucide-react";
+import { Home, Receipt, Settings, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
 import { isActive, type NavItem } from "@/components/nav-main";
-import { Button } from "@/components/ui/button";
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-} from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 /**
- * Untere Navigation für Mobilgeräte: zwei Links, in der Mitte der
- * (noch inaktive) Verkauf-Button, rechts zwei weitere Punkte. Ab md bleibt
- * die Sidebar die Navigation.
+ * Untere Navigation für Mobilgeräte: Start, Kunden und Verkäufe als Links,
+ * Einstellungen nur als deaktivierter Platzhalter. Ab md übernimmt die Sidebar.
  */
 export function MobileNav() {
-	const [comingSoon, setComingSoon] = useState<string | null>(null);
-
 	return (
-		<>
-			<nav
-				aria-label="Hauptnavigation"
-				className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
-			>
-				<div className="mx-auto grid max-w-md grid-cols-5">
-					<NavLink title="Start" url="/protected" icon={Home} />
-					<NavLink title="Kunden" url="/protected/kunden" icon={Users} />
-
-					<div className="flex min-h-14 items-center justify-center">
-						<Button
-							type="button"
-							aria-label="Verkauf erfassen"
-							className="size-10 rounded-xl"
-							onClick={() => setComingSoon("Verkauf erfassen")}
-						>
-							<Plus className="size-5" />
-						</Button>
-					</div>
-
-					<NavLink title="Verkäufe" url="/protected/verkaeufe" icon={Receipt} />
-
-					<button
-						type="button"
-						className="flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[0.7rem] text-muted-foreground"
-						onClick={() => setComingSoon("Einstellungen")}
-					>
-						<Settings className="size-5" />
-						<span>Einstellungen</span>
-					</button>
-				</div>
-			</nav>
-
-			<Sheet
-				open={comingSoon !== null}
-				onOpenChange={(open) => {
-					if (!open) setComingSoon(null);
-				}}
-			>
-				<SheetContent
-					side="bottom"
-					className="pb-[calc(env(safe-area-inset-bottom)+1rem)]"
-				>
-					<SheetHeader>
-						<SheetTitle>{comingSoon}</SheetTitle>
-						<SheetDescription>
-							Dieser Bereich ist noch in Arbeit.
-						</SheetDescription>
-					</SheetHeader>
-				</SheetContent>
-			</Sheet>
-		</>
+		<nav
+			aria-label="Hauptnavigation"
+			className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+		>
+			<div className="mx-auto grid max-w-md grid-cols-4">
+				<NavLink title="Start" url="/protected" icon={Home} />
+				<NavLink title="Kunden" url="/protected/kunden" icon={Users} />
+				<NavLink title="Verkäufe" url="/protected/verkaeufe" icon={Receipt} />
+				<span className="flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[0.7rem] text-muted-foreground opacity-50">
+					<Settings className="size-5" />
+					<span>Einstellungen</span>
+				</span>
+			</div>
+		</nav>
 	);
 }
 

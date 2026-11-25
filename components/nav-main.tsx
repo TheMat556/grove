@@ -1,10 +1,13 @@
 "use client";
 
 import {
+	CalendarCheck,
 	CalendarDays,
 	LayoutDashboard,
 	type LucideIcon,
 	Package,
+	Receipt,
+	Tag,
 	TreePine,
 	User,
 	Users,
@@ -34,6 +37,17 @@ const items: NavItem[] = [
 	{ title: "Stände", url: "/protected/staende", icon: TreePine },
 	{ title: "Produkte", url: "/protected/produkte", icon: Package },
 	{ title: "Kunden", url: "/protected/kunden", icon: Users },
+	{ title: "Verkäufe", url: "/protected/verkaeufe", icon: Receipt },
+	{
+		title: "Reservierungen",
+		url: "/protected/reservierungen",
+		icon: CalendarCheck,
+	},
+	{
+		title: "Preisempfehlungen",
+		url: "/protected/preisempfehlungen",
+		icon: Tag,
+	},
 	{ title: "Profile", url: "/protected/profile", icon: User },
 ];
 

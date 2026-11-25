@@ -7,6 +7,9 @@ const links = [
 	{ href: "/protected/staende", label: "Stände" },
 	{ href: "/protected/produkte", label: "Produkte" },
 	{ href: "/protected/kunden", label: "Kunden" },
+	{ href: "/protected/verkaeufe", label: "Verkäufe" },
+	{ href: "/protected/reservierungen", label: "Reservierungen" },
+	{ href: "/protected/preisempfehlungen", label: "Preisempfehlungen" },
 	{ href: "/protected/profile", label: "Profile" },
 ];
 

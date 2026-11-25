@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 const { currentPath } = vi.hoisted(() => ({
@@ -25,13 +25,15 @@ describe("MobileNav", () => {
 		);
 	});
 
-	it("explains that the Verkauf button is not ready yet", () => {
+	it("renders Einstellungen as non-interactive placeholder", () => {
 		render(<MobileNav />);
 
-		fireEvent.click(screen.getByRole("button", { name: "Verkauf erfassen" }));
-
 		expect(
-			screen.getByText("Dieser Bereich ist noch in Arbeit."),
-		).toBeInTheDocument();
+			screen.queryByRole("link", { name: "Verkauf erfassen" }),
+		).not.toBeInTheDocument();
+		expect(screen.getByText("Einstellungen")).toBeInTheDocument();
+		expect(
+			screen.queryByRole("button", { name: /Einstellungen/ }),
+		).not.toBeInTheDocument();
 	});
 });

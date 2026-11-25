@@ -163,6 +163,11 @@ function Sidebar({
 	collapsible?: "offcanvas" | "icon" | "none";
 }) {
 	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+	// Erst nach dem Mount auf die Mobile-Variante wechseln: unter Suspense wird
+	// die Sidebar verzögert hydriert, ein früherer isMobile-Wechsel würde dann
+	// nicht mehr zum Server-HTML passen (Hydration-Mismatch auf <768px).
+	const [mounted, setMounted] = React.useState(false);
+	React.useEffect(() => setMounted(true), []);
 
 	if (collapsible === "none") {
 		return (
@@ -179,7 +184,7 @@ function Sidebar({
 		);
 	}
 
-	if (isMobile) {
+	if (isMobile && mounted) {
 		return (
 			<Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
 				<SheetContent

@@ -11,7 +11,9 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 }
 
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
-	return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
+	// Kein data-slot: Base UI merged es je nach Render-Pfad (Server/Client)
+	// unterschiedlich mit dem data-slot des gerenderten Buttons -> Hydration-Mismatch.
+	return <DialogPrimitive.Trigger {...props} />;
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {

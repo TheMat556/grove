@@ -27,7 +27,6 @@ const { createAction: createSaisonAction, updateAction: updateSaisonAction } =
 		update: updateSaison,
 		labels: { singular: "Saison" },
 		revalidatePath: "/protected/saisons",
-		redirectOnUpdate: false,
 	});
 
 export { createSaisonAction, updateSaisonAction };

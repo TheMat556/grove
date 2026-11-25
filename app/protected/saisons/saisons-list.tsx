@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,29 +10,11 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { getSaisons } from "@/lib/data/saison";
-import { istAktiv, parseIsoDate } from "@/lib/saison";
+import { formatIsoDatum, istAktiv } from "@/lib/saison";
 import { SaisonDialog } from "./saison-dialog";
 
-const dateFormat = new Intl.DateTimeFormat("de-DE");
-
-function formatDate(value: string) {
-	const date = parseIsoDate(value);
-	return date ? dateFormat.format(date) : value;
-}
-
 export async function SaisonsList() {
-	let saisons: Awaited<ReturnType<typeof getSaisons>>;
-	try {
-		saisons = await getSaisons();
-	} catch (e) {
-		return (
-			<Alert variant="destructive">
-				<AlertDescription>
-					{e instanceof Error ? e.message : "Unbekannter Fehler"}
-				</AlertDescription>
-			</Alert>
-		);
-	}
+	const saisons = await getSaisons();
 
 	if (saisons.length === 0) {
 		return (
@@ -59,8 +40,8 @@ export async function SaisonsList() {
 					{saisons.map((saison) => (
 						<TableRow key={saison.id}>
 							<TableCell className="font-medium">{saison.name}</TableCell>
-							<TableCell>{formatDate(saison.start_datum)}</TableCell>
-							<TableCell>{formatDate(saison.end_datum)}</TableCell>
+							<TableCell>{formatIsoDatum(saison.start_datum)}</TableCell>
+							<TableCell>{formatIsoDatum(saison.end_datum)}</TableCell>
 							<TableCell>
 								{istAktiv(saison.start_datum, saison.end_datum) ? (
 									<Badge>Aktiv</Badge>
