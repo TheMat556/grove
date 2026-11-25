@@ -40,9 +40,7 @@ export function KundenSelect({
 
 	const suchbegriff = suche.trim().toLowerCase();
 	const treffer = suchbegriff
-		? kunden.filter((kunde) =>
-				kunde.name.toLowerCase().includes(suchbegriff),
-			)
+		? kunden.filter((kunde) => kunde.name.toLowerCase().includes(suchbegriff))
 		: kunden;
 	// Maximal 4 Kunden + angehefteter Anlegen-Eintrag = 5 Zeilen.
 	const eintraege: Eintrag[] = [
@@ -96,7 +94,10 @@ export function KundenSelect({
 				)}
 			/>
 			<Combobox.Portal>
-				<Combobox.Positioner sideOffset={4} className="isolate z-50 outline-none">
+				<Combobox.Positioner
+					sideOffset={4}
+					className="isolate z-50 outline-none"
+				>
 					<Combobox.Popup className="w-[var(--anchor-width)] max-w-[var(--available-width)] origin-[var(--transform-origin)] rounded-lg border bg-popover text-popover-foreground shadow-md">
 						<Combobox.List className="max-h-64 overflow-auto overscroll-contain p-1 outline-none">
 							{(eintrag: Eintrag) => (

@@ -374,8 +374,7 @@ function NeuerKundeInline({
 	}
 
 	return (
-		<div
-			role="group"
+		<fieldset
 			aria-label="Neuer Kunde"
 			onKeyDown={(event) => {
 				if (event.key !== "Escape") return;
@@ -409,6 +408,6 @@ function NeuerKundeInline({
 					{isPending ? "Anlegen…" : "Kunde anlegen"}
 				</Button>
 			</div>
-		</div>
+		</fieldset>
 	);
 }

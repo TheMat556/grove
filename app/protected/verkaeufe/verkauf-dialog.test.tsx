@@ -44,7 +44,11 @@ vi.mock("@/components/ui/select", async () => {
 					: { ...shared, defaultValue },
 				createElement("option", { value: "" }),
 				items.map((item) =>
-					createElement("option", { key: item.value, value: item.value }, item.label),
+					createElement(
+						"option",
+						{ key: item.value, value: item.value },
+						item.label,
+					),
 				),
 			);
 		},

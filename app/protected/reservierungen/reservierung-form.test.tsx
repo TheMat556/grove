@@ -58,7 +58,11 @@ vi.mock("@/components/ui/select", async () => {
 					: { ...shared, defaultValue },
 				createElement("option", { value: "" }),
 				items.map((item) =>
-					createElement("option", { key: item.value, value: item.value }, item.label),
+					createElement(
+						"option",
+						{ key: item.value, value: item.value },
+						item.label,
+					),
 				),
 			);
 		},
@@ -244,9 +248,7 @@ describe("ReservierungForm", () => {
 
 		const plz = screen.getByLabelText("PLZ");
 		fireEvent.change(plz, { target: { value: "12" } });
-		expect(
-			screen.getByText("PLZ zwischen 1000 und 9999."),
-		).toBeInTheDocument();
+		expect(screen.getByText("PLZ zwischen 1000 und 9999.")).toBeInTheDocument();
 
 		fireEvent.change(plz, { target: { value: "3100" } });
 		expect(
