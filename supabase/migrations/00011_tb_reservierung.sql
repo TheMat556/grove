@@ -8,5 +8,6 @@ CREATE TABLE TB_RESERVIERUNG (
 	geplantes_datum		DATE NOT NULL,
 	status				TEXT NOT NULL DEFAULT 'offen' CHECK (status IN ('offen', 'erfuellt', 'storniert')),
 	anzahlungsbetrag	NUMERIC(10, 2) CHECK (anzahlungsbetrag >= 0), /* TODO: Checkn wie wir offenen Preis berechnen: Gesamtpreis - anzahlungsbetrag?*/
+	anmerkung			TEXT,
 	reserviert_am		TIMESTAMPTZ NOT NULL DEFAULT now()
 );

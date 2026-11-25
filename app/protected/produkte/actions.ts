@@ -39,8 +39,6 @@ const {
 	revalidatePath: "/protected/produkte",
 	// Fehler bei Produkt-Löschen (z. B. FK durch Positionen) als Banner auf der Liste.
 	removeErrorPath: "/protected/produkte",
-	// Dialog-Formular schließt sich über { success: true } statt Redirect.
-	redirectOnUpdate: false,
 });
 
 export { createProduktAction, deleteProduktAction, updateProduktAction };

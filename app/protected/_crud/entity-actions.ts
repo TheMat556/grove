@@ -40,6 +40,11 @@ type EntityActionsConfig<T> = {
 	 * lassen create() weg und exportieren createAction nicht.
 	 */
 	create?: (input: T) => Promise<unknown>;
+	/**
+	 * Optional: Ergänzt den Erfolgs-Zustand von createAction() um Daten aus der
+	 * Rückgabe von create() (row), z. B. { kunde: row } für Inline-Dialoge.
+	 */
+	createSuccess?: (row: unknown) => object;
 	update: (id: string, input: T) => Promise<unknown>;
 	/**
 	 * Optional: Entitäten ohne Delete (z. B. Profil) lassen remove() weg und
@@ -54,12 +59,6 @@ type EntityActionsConfig<T> = {
 	 * sonst in der Error-Boundary.
 	 */
 	removeErrorPath?: string;
-	/**
-	 * Standardmäßig leitet updateAction nach dem Speichern auf die Liste um.
-	 * Mit false gibt die Action stattdessen { success: true } zurück, damit
-	 * Dialog-Formulare sich schließen können.
-	 */
-	redirectOnUpdate?: boolean;
 };
 
 /**
@@ -88,12 +87,12 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 		updateSchema,
 		mapInput,
 		create,
+		createSuccess,
 		update,
 		remove,
 		labels,
 		revalidatePath: revalidatePathValue,
 		removeErrorPath,
-		redirectOnUpdate,
 	} = config;
 
 	return {
@@ -114,9 +113,10 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 				return { errors: toFieldErrors(parsed.error) };
 			}
 
+			let row: unknown;
 			try {
 				await getCurrentProfilId();
-				await create(parsed.data as T);
+				row = await create(parsed.data as T);
 			} catch (e) {
 				return {
 					message:
@@ -127,7 +127,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 			}
 
 			revalidatePath(revalidatePathValue);
-			return { success: true };
+			return { success: true, ...createSuccess?.(row) };
 		},
 
 		updateAction: async (
@@ -162,10 +162,7 @@ export function createEntityActions<T>(config: EntityActionsConfig<T>) {
 			}
 
 			revalidatePath(revalidatePathValue);
-			if (redirectOnUpdate === false) {
-				return { success: true };
-			}
-			redirect(revalidatePathValue);
+			return { success: true };
 		},
 
 		deleteAction: async (formData: FormData): Promise<void> => {

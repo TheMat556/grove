@@ -26,6 +26,14 @@ export function parseIsoDate(value: string): Date | undefined {
 	return Number.isNaN(date.getTime()) ? undefined : date;
 }
 
+const datumFormat = new Intl.DateTimeFormat("de-DE");
+
+/** ISO-Datum als deutsches Datum (TT.MM.JJJJ); ungültige Werte unverändert. */
+export function formatIsoDatum(value: string): string {
+	const date = parseIsoDate(value);
+	return date ? datumFormat.format(date) : value;
+}
+
 /**
  * Eine Saison ist aktiv, solange heute zwischen Start- und Enddatum liegt.
  * Datumswerte sind ISO-Strings (yyyy-mm-dd), daher reicht ein String-Vergleich.

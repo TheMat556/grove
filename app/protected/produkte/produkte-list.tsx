@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -16,18 +15,7 @@ import { ProduktDialog } from "./produkt-dialog";
 
 /** Produktliste als Tabelle mit Bearbeiten-Dialog und Löschen je Zeile. */
 export async function ProdukteList() {
-	let produkte: Awaited<ReturnType<typeof getProdukte>>;
-	try {
-		produkte = await getProdukte();
-	} catch (e) {
-		return (
-			<Alert variant="destructive">
-				<AlertDescription>
-					{e instanceof Error ? e.message : "Unbekannter Fehler"}
-				</AlertDescription>
-			</Alert>
-		);
-	}
+	const produkte = await getProdukte();
 
 	if (produkte.length === 0) {
 		return (

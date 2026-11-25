@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -16,18 +15,7 @@ import { KundeDialog } from "./kunde-dialog";
 
 /** Kundenliste als Tabelle mit Bearbeiten-Dialog und Löschen je Zeile. */
 export async function KundenList() {
-	let kunden: Awaited<ReturnType<typeof getKunden>>;
-	try {
-		kunden = await getKunden();
-	} catch (e) {
-		return (
-			<Alert variant="destructive">
-				<AlertDescription>
-					{e instanceof Error ? e.message : "Unbekannter Fehler"}
-				</AlertDescription>
-			</Alert>
-		);
-	}
+	const kunden = await getKunden();
 
 	if (kunden.length === 0) {
 		return (
@@ -45,6 +33,7 @@ export async function KundenList() {
 						<TableHead>Name</TableHead>
 						<TableHead>Typ</TableHead>
 						<TableHead>Telefon</TableHead>
+						<TableHead>PLZ</TableHead>
 						<TableHead>Adresse</TableHead>
 						<TableHead className="text-right">Aktion</TableHead>
 					</TableRow>
@@ -55,6 +44,7 @@ export async function KundenList() {
 							<TableCell className="font-medium">{kunde.name}</TableCell>
 							<TableCell>{kunde.ist_firma ? "Firma" : "Privat"}</TableCell>
 							<TableCell>{kunde.telefon}</TableCell>
+							<TableCell>{kunde.plz || "–"}</TableCell>
 							<TableCell>{kunde.adresse}</TableCell>
 							<TableCell>
 								<div className="flex justify-end gap-2">

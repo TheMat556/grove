@@ -1,13 +1,12 @@
 import { createCrud } from "@/lib/data/crud";
 import { getCurrentProfilId } from "@/lib/data/session";
-import { positionInsertSchema } from "@/lib/schemas/position";
-import { verkaufInsertSchema } from "@/lib/schemas/verkauf";
+import {
+	preisGesamt,
+	type VerkaufFormInput,
+	verkaufInsertSchema,
+} from "@/lib/schemas/verkauf";
 import type { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
-
-// Positionen tragen ihre verkauf_id erst nach dem Kopf-Insert (via RPC), daher
-// wird sie für die Vorab-Validierung ausgeblendet.
-const positionRpcSchema = positionInsertSchema.omit({ verkauf_id: true });
 
 const TABLE = "tb_verkauf";
 
@@ -17,9 +16,6 @@ const crud = createCrud({
 	labels: { singular: "Verkauf", plural: "Verkäufe" },
 });
 
-export const getVerkaeufe = crud.getAll;
-export const getVerkauf = crud.getById;
-export const getVerkaeufeBySaisonId = crud.getBySaisonId;
 export const updateVerkauf = crud.update;
 export const deleteVerkauf = crud.remove;
 
@@ -29,13 +25,7 @@ export const deleteVerkauf = crud.remove;
  */
 export async function createVerkaufMitPositionen(
 	kopf: Omit<Parameters<typeof crud.create>[0], "profil_id" | "verkauft_am">,
-	positionen: Array<{
-		produkt_id: string;
-		menge: number;
-		einzelpreis: number;
-		kreuz_montiert?: boolean;
-		hoehe_cm: number;
-	}>,
+	positionen: VerkaufFormInput["positionen"],
 ): Promise<Tables<"tb_verkauf">> {
 	const supabase = await createClient();
 
@@ -46,11 +36,10 @@ export async function createVerkaufMitPositionen(
 		...kopf,
 		profil_id: profilId,
 	});
-	const gepruefePositionen = positionen.map((p) => positionRpcSchema.parse(p));
 
 	const { data, error } = await supabase.rpc("create_verkauf_mit_positionen", {
 		p_verkauf: kopfMitSession,
-		p_positionen: gepruefePositionen,
+		p_positionen: positionen,
 	});
 
 	if (error) {
@@ -58,4 +47,98 @@ export async function createVerkaufMitPositionen(
 	}
 
 	return data;
+}
+
+export type VerkaufMitDetails = Tables<"tb_verkauf"> & {
+	stand: Tables<"tb_stand"> | null;
+	verkaeufer: Tables<"tb_profil"> | null;
+	reservierung:
+		| (Tables<"tb_reservierung"> & { kunde: Tables<"tb_kunde"> | null })
+		| null;
+	positionen: Array<
+		Tables<"tb_position"> & { produkt: Tables<"tb_produkt"> | null }
+	>;
+};
+
+/**
+ * Ändert Kopf und Positionen (Positionen werden ersetzt).
+ * ponytail: Kopf-Update und Positions-Tausch laufen ohne DB-Transaktion; ein
+ * Fehler mittendrin hinterlässt einen unvollständigen Verkauf – RPC erst, wenn
+ * das real wird.
+ */
+export async function updateVerkaufMitPositionen(
+	id: string,
+	kopf: Pick<Tables<"tb_verkauf">, "stand_id" | "aktion_bz" | "anmerkung">,
+	positionen: VerkaufFormInput["positionen"],
+): Promise<Tables<"tb_verkauf">> {
+	const supabase = await createClient();
+
+	const verkauf = await updateVerkauf(id, {
+		stand_id: kopf.stand_id,
+		aktion_bz: kopf.aktion_bz,
+		anmerkung: kopf.anmerkung,
+		preis_gesamt: preisGesamt(positionen),
+	});
+
+	const { error: deleteError } = await supabase
+		.from("tb_position")
+		.delete()
+		.eq("verkauf_id", id);
+
+	if (deleteError) {
+		throw new Error(
+			`Positionen konnten nicht ersetzt werden: ${deleteError.message}`,
+		);
+	}
+
+	const { error: insertError } = await supabase
+		.from("tb_position")
+		.insert(positionen.map((position) => ({ ...position, verkauf_id: id })));
+
+	if (insertError) {
+		throw new Error(
+			`Positionen konnten nicht gespeichert werden: ${insertError.message}`,
+		);
+	}
+
+	return verkauf;
+}
+
+/** Löscht einen Verkauf inkl. Positionen (Positionen zuerst wegen FK). */
+export async function deleteVerkaufMitPositionen(id: string): Promise<void> {
+	const supabase = await createClient();
+	const { error } = await supabase
+		.from("tb_position")
+		.delete()
+		.eq("verkauf_id", id);
+
+	if (error) {
+		throw new Error(
+			`Positionen konnten nicht gelöscht werden: ${error.message}`,
+		);
+	}
+
+	await deleteVerkauf(id);
+}
+
+/**
+ * Verkäufe einer Saison inkl. Stand, Verkäufer, Positionen (mit Produkt) und
+ * verknüpfter Reservierung (mit Kunde) für Liste und Übersicht – in einer
+ * verschachtelten Abfrage (analog getReservierungenMitDetails).
+ */
+export async function getVerkaeufeMitDetails(
+	saisonId: string,
+): Promise<VerkaufMitDetails[]> {
+	const supabase = await createClient();
+	const { data, error } = await supabase
+		.from(TABLE)
+		.select(
+			"*, stand:tb_stand(*), verkaeufer:tb_profil(*), reservierung:tb_reservierung(*, kunde:tb_kunde(*)), positionen:tb_position(*, produkt:tb_produkt(*))",
+		)
+		.eq("saison_id", saisonId)
+		.order("verkauft_am", { ascending: false });
+	if (error) {
+		throw new Error(`Verkäufe konnten nicht geladen werden: ${error.message}`);
+	}
+	return (data ?? []) as VerkaufMitDetails[];
 }

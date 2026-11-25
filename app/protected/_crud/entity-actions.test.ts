@@ -38,7 +38,6 @@ type ConfigOverrides = {
 	create?: (input: unknown) => Promise<unknown>;
 	update?: (id: string, input: unknown) => Promise<unknown>;
 	remove?: (id: string) => Promise<void>;
-	redirectOnUpdate?: boolean;
 };
 
 function makeConfig(overrides: ConfigOverrides = {}) {
@@ -106,13 +105,13 @@ describe("createEntityActions", () => {
 			expect(config.update).not.toHaveBeenCalled();
 		});
 
-		it("updates with parsed data and redirects", async () => {
+		it("updates with parsed data, revalidates and reports success", async () => {
 			const { actions, config } = makeConfig();
 			const state = await actions.updateAction({}, formDataOf({ id: "abc" }));
 			expect(config.update).toHaveBeenCalledWith("abc", { feld: "x" });
 			expect(revalidatePath).toHaveBeenCalledWith("/test");
-			expect(redirect).toHaveBeenCalledWith("/test");
-			expect(state).toBeUndefined();
+			expect(redirect).not.toHaveBeenCalled();
+			expect(state).toEqual({ success: true });
 		});
 
 		it("refuses to update without a login", async () => {
@@ -131,15 +130,6 @@ describe("createEntityActions", () => {
 			});
 			const state = await actions.updateAction({}, formDataOf({ id: "abc" }));
 			expect(state.message).toBe("FK-Verstoß");
-		});
-
-		it("returns success instead of redirecting when redirectOnUpdate is false", async () => {
-			const { actions, config } = makeConfig({ redirectOnUpdate: false });
-			const state = await actions.updateAction({}, formDataOf({ id: "abc" }));
-			expect(config.update).toHaveBeenCalledWith("abc", { feld: "x" });
-			expect(revalidatePath).toHaveBeenCalledWith("/test");
-			expect(redirect).not.toHaveBeenCalled();
-			expect(state).toEqual({ success: true });
 		});
 	});
 

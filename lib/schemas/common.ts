@@ -1,5 +1,6 @@
 import { z } from "zod";
 
-export const uuidSchema = z.string().uuid("Ungültige UUID");
+/** RFC-4122-UUID. Alle IDs im System sind v4: gen_random_uuid, Supabase-Auth, Seed. */
+export const uuidSchema = z.uuid("Ungültige UUID");
 export const numericSchema = z.coerce.number().nonnegative();
-export const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+export const dateSchema = z.iso.date("Ungültiges Datum");

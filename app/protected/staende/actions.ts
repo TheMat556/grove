@@ -31,7 +31,6 @@ const {
 	remove: deleteStandMitStandort,
 	labels: { singular: "Stand" },
 	revalidatePath: "/protected/staende",
-	redirectOnUpdate: false,
 });
 
 export { createStandAction, deleteStandAction, updateStandAction };

@@ -218,7 +218,8 @@ export function createFixtures() {
 	async function createKunde(overrides: Overrides = {}) {
 		const kunde = await crudKunde.create({
 			name: `test-${uid()}`,
-			telefon: `+49-${uid()}`,
+			telefon: "+49 664 1234567",
+			plz: "1234",
 			adresse: `${uid()}-Straße 1`,
 			ist_firma: false,
 			...overrides,

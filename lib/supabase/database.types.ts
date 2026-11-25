@@ -131,6 +131,7 @@ export type Database = {
 					id: string;
 					ist_firma: boolean;
 					name: string;
+					plz: string;
 					telefon: string;
 				};
 				Insert: {
@@ -138,6 +139,7 @@ export type Database = {
 					id?: string;
 					ist_firma: boolean;
 					name: string;
+					plz?: string;
 					telefon: string;
 				};
 				Update: {
@@ -145,6 +147,7 @@ export type Database = {
 					id?: string;
 					ist_firma?: boolean;
 					name?: string;
+					plz?: string;
 					telefon?: string;
 				};
 				Relationships: [];
@@ -283,6 +286,7 @@ export type Database = {
 			};
 			tb_reservierung: {
 				Row: {
+					anmerkung: string | null;
 					anzahlungsbetrag: number | null;
 					geplantes_datum: string;
 					id: string;
@@ -295,6 +299,7 @@ export type Database = {
 					versandart: string;
 				};
 				Insert: {
+					anmerkung?: string | null;
 					anzahlungsbetrag?: number | null;
 					geplantes_datum: string;
 					id?: string;
@@ -307,6 +312,7 @@ export type Database = {
 					versandart?: string;
 				};
 				Update: {
+					anmerkung?: string | null;
 					anzahlungsbetrag?: number | null;
 					geplantes_datum?: string;
 					id?: string;

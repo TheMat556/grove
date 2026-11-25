@@ -19,6 +19,8 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO authenticated, service_role;
 -- Email:    dev@grove.de
 -- Passwort: dev123
 -- Rolle:    admin
+-- ID:       bewusst RFC-konforme v4 (00000000-0000-4000-8000-000000000001),
+--           damit z.uuid() sie akzeptiert.
 --
 -- Nach `supabase start` oder `supabase db reset` verfügbar.
 -- =============================================================================
@@ -41,7 +43,7 @@ INSERT INTO auth.users (
 )
 VALUES (
 	'00000000-0000-0000-0000-000000000000',
-	'00000000-0000-0000-0000-000000000001',
+	'00000000-0000-4000-8000-000000000001',
 	'authenticated',
 	'authenticated',
 	'dev@grove.de',
@@ -60,7 +62,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.tb_profil (id, name, rolle)
 VALUES (
-	'00000000-0000-0000-0000-000000000001',
+	'00000000-0000-4000-8000-000000000001',
 	'Dev User',
 	'admin'
 )

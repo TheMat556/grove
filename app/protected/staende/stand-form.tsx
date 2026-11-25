@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NumberField } from "@/components/ui/number-field";
 import type { StandMitStandort } from "@/lib/data/stand";
+import { useServerForm } from "../_crud/use-server-form";
 import {
 	createStandAction,
 	type StandFormState,
@@ -21,20 +22,14 @@ type StandFormProps = {
 };
 
 export function StandForm({ mode, stand, onSuccess }: StandFormProps) {
-	const [state, formAction, isPending] = useActionState(
+	const { state, isPending, formProps } = useServerForm(
 		mode === "create" ? createStandAction : updateStandAction,
 		initialState,
+		onSuccess,
 	);
-	const formRef = useRef<HTMLFormElement>(null);
-
-	useEffect(() => {
-		if (!state.success) return;
-		formRef.current?.reset();
-		onSuccess?.();
-	}, [state.success, onSuccess]);
 
 	return (
-		<form ref={formRef} action={formAction} className="flex flex-col gap-4">
+		<form {...formProps} className="flex flex-col gap-4">
 			{mode === "edit" && (
 				<input type="hidden" name="id" defaultValue={stand?.id} />
 			)}
@@ -53,15 +48,14 @@ export function StandForm({ mode, stand, onSuccess }: StandFormProps) {
 
 			<Field data-invalid={!!state.errors?.plz}>
 				<FieldLabel htmlFor={`${mode}-plz`}>PLZ</FieldLabel>
-				<Input
+				<NumberField
 					id={`${mode}-plz`}
 					name="plz"
-					type="number"
 					min={1000}
 					max={9999}
 					placeholder="1234"
 					defaultValue={stand?.standort?.plz}
-					aria-invalid={!!state.errors?.plz}
+					invalid={!!state.errors?.plz}
 				/>
 				<FieldError>{state.errors?.plz?.[0]}</FieldError>
 			</Field>

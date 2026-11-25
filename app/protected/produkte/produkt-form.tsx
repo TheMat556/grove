@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { NumberField } from "@/components/ui/number-field";
 import { selectClasses } from "../_crud/select-classes";
+import { useServerForm } from "../_crud/use-server-form";
 import {
 	createProduktAction,
 	type ProduktFormState,
@@ -30,20 +31,14 @@ type ProduktFormProps = {
 
 /** Formular für ein Produkt; meldet Erfolg an den umgebenden Dialog. */
 export function ProduktForm({ mode, produkt, onSuccess }: ProduktFormProps) {
-	const [state, formAction, isPending] = useActionState(
+	const { state, isPending, formProps } = useServerForm(
 		mode === "create" ? createProduktAction : updateProduktAction,
 		initialState,
+		onSuccess,
 	);
-	const formRef = useRef<HTMLFormElement>(null);
-
-	useEffect(() => {
-		if (!state.success) return;
-		formRef.current?.reset();
-		onSuccess?.();
-	}, [state.success, onSuccess]);
 
 	return (
-		<form ref={formRef} action={formAction} className="flex flex-col gap-4">
+		<form {...formProps} className="flex flex-col gap-4">
 			{mode === "edit" && (
 				<input type="hidden" name="id" defaultValue={produkt?.id} />
 			)}
@@ -80,30 +75,28 @@ export function ProduktForm({ mode, produkt, onSuccess }: ProduktFormProps) {
 
 			<Field data-invalid={!!state.errors?.von_cm}>
 				<FieldLabel htmlFor={`${mode}-von_cm`}>Größe von (cm)</FieldLabel>
-				<Input
+				<NumberField
 					id={`${mode}-von_cm`}
 					name="von_cm"
-					type="number"
 					min={1}
 					required
 					placeholder="100"
 					defaultValue={produkt?.von_cm}
-					aria-invalid={!!state.errors?.von_cm}
+					invalid={!!state.errors?.von_cm}
 				/>
 				<FieldError>{state.errors?.von_cm?.[0]}</FieldError>
 			</Field>
 
 			<Field data-invalid={!!state.errors?.bis_cm}>
 				<FieldLabel htmlFor={`${mode}-bis_cm`}>Größe bis (cm)</FieldLabel>
-				<Input
+				<NumberField
 					id={`${mode}-bis_cm`}
 					name="bis_cm"
-					type="number"
 					min={1}
 					required
 					placeholder="200"
 					defaultValue={produkt?.bis_cm}
-					aria-invalid={!!state.errors?.bis_cm}
+					invalid={!!state.errors?.bis_cm}
 				/>
 				<FieldError>{state.errors?.bis_cm?.[0]}</FieldError>
 			</Field>
