@@ -121,6 +121,26 @@ describe("createVerkaufAction", () => {
 		expect(create).not.toHaveBeenCalled();
 	});
 
+	it("Einzelpreis mit mehr als zwei Nachkommastellen: Fehler, kein DB-Aufruf", async () => {
+		const state = await createVerkaufAction(
+			{},
+			formData({
+				positionen: JSON.stringify([
+					{
+						produkt_id: produktId,
+						menge: 1,
+						einzelpreis: 10.005,
+						kreuz_montiert: false,
+						hoehe_cm: 100,
+					},
+				]),
+			}),
+		);
+
+		expect(state.errors?.positionen?.[0]).toMatch(/Nachkommastellen/);
+		expect(create).not.toHaveBeenCalled();
+	});
+
 	it("Datenfehler wird als Meldung zurückgegeben", async () => {
 		create.mockRejectedValue(
 			new Error("Verkauf konnte nicht angelegt werden: kaputt"),

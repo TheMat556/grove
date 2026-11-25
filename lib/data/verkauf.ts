@@ -16,9 +16,6 @@ const crud = createCrud({
 	labels: { singular: "Verkauf", plural: "Verkäufe" },
 });
 
-export const updateVerkauf = crud.update;
-export const deleteVerkauf = crud.remove;
-
 /**
  * Erstellt einen Verkauf mit N Positionen in einer atomaren DB-Transaktion
  * (via RPC). profil_id wird serverseitig aus der aktuellen Session injiziert.
@@ -61,10 +58,8 @@ export type VerkaufMitDetails = Tables<"tb_verkauf"> & {
 };
 
 /**
- * Ändert Kopf und Positionen (Positionen werden ersetzt).
- * ponytail: Kopf-Update und Positions-Tausch laufen ohne DB-Transaktion; ein
- * Fehler mittendrin hinterlässt einen unvollständigen Verkauf – RPC erst, wenn
- * das real wird.
+ * Ändert Kopf und Positionen (Positionen werden ersetzt) – atomar über eine
+ * DB-Funktion: Kopf-Update, Löschen und Einfügen laufen in einer Transaktion.
  */
 export async function updateVerkaufMitPositionen(
 	id: string,
@@ -72,53 +67,31 @@ export async function updateVerkaufMitPositionen(
 	positionen: VerkaufFormInput["positionen"],
 ): Promise<Tables<"tb_verkauf">> {
 	const supabase = await createClient();
-
-	const verkauf = await updateVerkauf(id, {
-		stand_id: kopf.stand_id,
-		aktion_bz: kopf.aktion_bz,
-		anmerkung: kopf.anmerkung,
-		preis_gesamt: preisGesamt(positionen),
+	const { data, error } = await supabase.rpc("update_verkauf_mit_positionen", {
+		p_verkauf_id: id,
+		p_kopf: { ...kopf, preis_gesamt: preisGesamt(positionen) },
+		p_positionen: positionen,
 	});
-
-	const { error: deleteError } = await supabase
-		.from("tb_position")
-		.delete()
-		.eq("verkauf_id", id);
-
-	if (deleteError) {
-		throw new Error(
-			`Positionen konnten nicht ersetzt werden: ${deleteError.message}`,
-		);
-	}
-
-	const { error: insertError } = await supabase
-		.from("tb_position")
-		.insert(positionen.map((position) => ({ ...position, verkauf_id: id })));
-
-	if (insertError) {
-		throw new Error(
-			`Positionen konnten nicht gespeichert werden: ${insertError.message}`,
-		);
-	}
-
-	return verkauf;
-}
-
-/** Löscht einen Verkauf inkl. Positionen (Positionen zuerst wegen FK). */
-export async function deleteVerkaufMitPositionen(id: string): Promise<void> {
-	const supabase = await createClient();
-	const { error } = await supabase
-		.from("tb_position")
-		.delete()
-		.eq("verkauf_id", id);
 
 	if (error) {
 		throw new Error(
-			`Positionen konnten nicht gelöscht werden: ${error.message}`,
+			`Verkauf konnte nicht aktualisiert werden: ${error.message}`,
 		);
 	}
 
-	await deleteVerkauf(id);
+	return data;
+}
+
+/** Löscht einen Verkauf inkl. Positionen atomar über eine DB-Funktion. */
+export async function deleteVerkaufMitPositionen(id: string): Promise<void> {
+	const supabase = await createClient();
+	const { error } = await supabase.rpc("delete_verkauf_mit_positionen", {
+		p_verkauf_id: id,
+	});
+
+	if (error) {
+		throw new Error(`Verkauf konnte nicht gelöscht werden: ${error.message}`);
+	}
 }
 
 /**

@@ -28,6 +28,34 @@ export async function createReservierungMitProfil(input: ReservierungInsert) {
 	return createReservierung({ ...input, profil_id: profilId });
 }
 
+/**
+ * Legt eine Reservierung an und verknüpft sie optional mit einem Verkauf – beides
+ * in einer DB-Transaktion. Ist der Verkauf bereits verknüpft, schlägt der Aufruf
+ * fehl und es wird keine Reservierung angelegt (kein stilles Überschreiben).
+ */
+export async function createReservierungMitVerkauf(
+	input: ReservierungInsert,
+	verkaufId: string,
+) {
+	const profilId = await getCurrentProfilId();
+	const supabase = await createClient();
+	const { data, error } = await supabase.rpc(
+		"create_reservierung_mit_verkauf",
+		{
+			p_reservierung: { ...input, profil_id: profilId },
+			p_verkauf_id: verkaufId,
+		},
+	);
+
+	if (error) {
+		throw new Error(
+			`Reservierung konnte nicht angelegt werden: ${error.message}`,
+		);
+	}
+
+	return data;
+}
+
 export type ReservierungMitDetails = Tables<"tb_reservierung"> & {
 	stand: Tables<"tb_stand"> | null;
 	kunde: Tables<"tb_kunde"> | null;

@@ -65,6 +65,12 @@ describe("KundenSelect", () => {
 		expect(onChange).toHaveBeenCalledWith("kunde-2");
 	});
 
+	it("zeigt auch einen ausgewählten Kunden außerhalb der ersten vier Treffer", () => {
+		renderSelect({ value: "kunde-8" });
+
+		expect(screen.getByRole("combobox")).toHaveValue("Kunde 8");
+	});
+
 	it("öffnet über den letzten Eintrag die Inline-Anlage", () => {
 		const { onAnlegen } = renderSelect();
 		oeffnen();

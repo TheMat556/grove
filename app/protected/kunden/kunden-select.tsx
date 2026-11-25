@@ -53,9 +53,14 @@ export function KundenSelect({
 			anlegen: true,
 		},
 	];
-	const gewaehlt =
-		eintraege.find((eintrag) => eintrag.value === value && !eintrag.anlegen) ??
-		null;
+	// Auswahl aus der vollen Kundenliste auflösen: der selektierte Kunde kann
+	// außerhalb der vier angezeigten Treffer liegen (z. B. beim Bearbeiten).
+	const gewaehlterKunde = value
+		? kunden.find((kunde) => kunde.id === value)
+		: undefined;
+	const gewaehlt: Eintrag | null = gewaehlterKunde
+		? { value: gewaehlterKunde.id, label: gewaehlterKunde.name }
+		: null;
 
 	function auswahl(eintrag: Eintrag | null) {
 		if (!eintrag) return;

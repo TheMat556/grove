@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // "use server"-Datei: Session + next/cache gestubbt, darunter der gemeinsame
 // entity-actions-Factory-Pfad; die Datenfunktionen sind gemockt.
-const { revalidatePath, data, updateVerkauf } = vi.hoisted(() => ({
+const { revalidatePath, data, createMitVerkauf } = vi.hoisted(() => ({
 	revalidatePath: vi.fn(),
 	data: { create: vi.fn(), update: vi.fn(), remove: vi.fn() },
-	updateVerkauf: vi.fn(),
+	createMitVerkauf: vi.fn(),
 }));
 
 vi.mock("next/cache", () => ({ revalidatePath }));
@@ -16,10 +16,10 @@ vi.mock("@/lib/data/session", () => ({
 }));
 vi.mock("@/lib/data/reservierung", () => ({
 	createReservierungMitProfil: data.create,
+	createReservierungMitVerkauf: createMitVerkauf,
 	updateReservierung: data.update,
 	deleteReservierung: data.remove,
 }));
-vi.mock("@/lib/data/verkauf", () => ({ updateVerkauf }));
 
 import { formMitWerten as formData } from "../__tests__/test-utils";
 import {
@@ -45,6 +45,7 @@ describe("reservierungen actions", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		data.create.mockResolvedValue({});
+		createMitVerkauf.mockResolvedValue({});
 		data.update.mockResolvedValue({});
 	});
 
@@ -66,35 +67,40 @@ describe("reservierungen actions", () => {
 			}),
 		);
 		expect(data.create.mock.calls[0][0].status).toBeUndefined();
-		expect(updateVerkauf).not.toHaveBeenCalled();
+		expect(createMitVerkauf).not.toHaveBeenCalled();
 		expect(revalidatePath).toHaveBeenCalledWith("/protected/reservierungen");
 	});
 
-	it("create: verknüpft die Reservierung mit einem Verkauf, wenn verkauf_id gesetzt ist", async () => {
-		data.create.mockResolvedValue({ id: "reservierung-1" });
-
+	it("create: legt Reservierung und Verknüpfung atomar an, wenn verkauf_id gesetzt ist", async () => {
 		const state: ReservierungFormState = await createReservierungAction(
 			{},
 			formData({ ...basis, verkauf_id: verkaufId }),
 		);
 
 		expect(state).toEqual({ success: true });
-		expect(updateVerkauf).toHaveBeenCalledWith(verkaufId, {
-			reservierung_id: "reservierung-1",
-		});
+		expect(createMitVerkauf).toHaveBeenCalledWith(
+			expect.objectContaining({
+				kunde_id: kundeId,
+				geplantes_datum: "2026-06-15",
+			}),
+			verkaufId,
+		);
+		expect(data.create).not.toHaveBeenCalled();
+		expect(revalidatePath).toHaveBeenCalledWith("/protected/reservierungen");
 		expect(revalidatePath).toHaveBeenCalledWith("/protected/verkaeufe");
 	});
 
-	it("create: Fehler beim Verknüpfen wird als Meldung zurückgegeben", async () => {
-		data.create.mockResolvedValue({ id: "reservierung-1" });
-		updateVerkauf.mockRejectedValue(new Error("Verkauf kaputt"));
+	it("create: bereits verknüpfter Verkauf kommt als Meldung zurück", async () => {
+		createMitVerkauf.mockRejectedValue(
+			new Error("Der Verkauf ist bereits mit einer Reservierung verknüpft."),
+		);
 
 		const state = await createReservierungAction(
 			{},
 			formData({ ...basis, verkauf_id: verkaufId }),
 		);
 
-		expect(state.message).toContain("Verkauf kaputt");
+		expect(state.message).toContain("bereits mit einer Reservierung verknüpft");
 		expect(state.success).toBeUndefined();
 	});
 

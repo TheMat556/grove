@@ -13,6 +13,13 @@ type NumberFieldProps = React.ComponentProps<
 	placeholder?: string;
 };
 
+/** Eingabe gilt als Zahl, wenn sie (leer oder) nur Ziffern/Trennzeichen enthält. */
+function istZahlEingabe(text: string) {
+	const wert = text.trim();
+	if (!wert) return true;
+	return /^[+-]?[\d.,\s]*$/.test(wert) && /\d/.test(wert);
+}
+
 const stepperClasses =
 	"flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center text-muted-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50";
 
@@ -41,7 +48,8 @@ export function NumberField({
 			defaultValue={defaultValue}
 			locale="de-DE"
 			className={cn(
-				"flex w-full items-center overflow-hidden rounded-lg border border-input bg-transparent",
+				"flex w-full items-center overflow-hidden rounded-lg border border-input bg-transparent transition-colors",
+				"focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50",
 				invalid && "border-destructive",
 				className,
 			)}
@@ -62,6 +70,15 @@ export function NumberField({
 				aria-invalid={invalid}
 				placeholder={placeholder}
 				className="h-8 w-full min-w-0 bg-transparent px-1 text-center text-sm outline-none placeholder:text-muted-foreground"
+				// Unparsebare Eingabe (z. B. nur "-") darf nicht den letzten gültigen
+				// Zahlenwert absenden: native Validierung blockt das Formular.
+				onInput={(event) => event.currentTarget.setCustomValidity("")}
+				onBlur={(event) => {
+					const eingabe = event.currentTarget;
+					eingabe.setCustomValidity(
+						istZahlEingabe(eingabe.value) ? "" : "Ungültige Zahl.",
+					);
+				}}
 			/>
 			<NumberFieldPrimitive.Increment
 				key="increment"

@@ -22,10 +22,16 @@ export const verkaufInsertSchema = verkaufSchema.omit({
 export type Verkauf = z.infer<typeof verkaufSchema>;
 export type VerkaufInsert = z.infer<typeof verkaufInsertSchema>;
 
+/** Cent-genauer Preis: NUMERIC(10,2) in der DB würde sonst still runden. */
+const centPreisSchema = numericSchema.refine(
+	(preis) => Math.abs(preis * 100 - Math.round(preis * 100)) < 1e-6,
+	"Einzelpreis mit höchstens zwei Nachkommastellen.",
+);
+
 /** Eine Position, wie sie das Verkaufsformular liefert (ohne verkauf_id). */
-export const verkaufPositionSchema = positionInsertSchema.omit({
-	verkauf_id: true,
-});
+export const verkaufPositionSchema = positionInsertSchema
+	.omit({ verkauf_id: true })
+	.extend({ einzelpreis: centPreisSchema });
 
 /**
  * Formular-Input für einen Verkauf: Kopf ohne die serverseitig bestimmten

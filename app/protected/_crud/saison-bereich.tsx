@@ -39,9 +39,11 @@ export function SaisonBereich({
 				{bereit && aktion}
 			</div>
 
-			{!bereit && <p className="text-sm text-muted-foreground">{hinweis}</p>}
-
-			{children}
+			{bereit ? (
+				children
+			) : (
+				<p className="text-sm text-muted-foreground">{hinweis}</p>
+			)}
 		</div>
 	);
 }

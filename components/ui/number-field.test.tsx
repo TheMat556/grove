@@ -34,6 +34,24 @@ describe("NumberField", () => {
 		expect(formData().get("menge")).toBe("3");
 	});
 
+	it("blockiert das Absenden bei unparsebarer Eingabe statt alten Wert zu senden", () => {
+		render(
+			<form>
+				<label htmlFor="groesse">Größe</label>
+				<NumberField id="groesse" name="groesse" defaultValue={5} />
+			</form>,
+		);
+		const eingabe = screen.getByLabelText("Größe") as HTMLInputElement;
+
+		fireEvent.input(eingabe, { target: { value: "-" } });
+		fireEvent.blur(eingabe);
+		expect(eingabe.checkValidity()).toBe(false);
+		expect(eingabe.validationMessage).toContain("Ungültige Zahl");
+
+		fireEvent.input(eingabe, { target: { value: "12" } });
+		expect(eingabe.checkValidity()).toBe(true);
+	});
+
 	it("initialisiert neu, wenn sich defaultValue nach dem ersten Render ändert", () => {
 		// Realer Fall: revalidatePath rendert das offene Formular mit frischen
 		// Daten neu. Base UI warnt dann vor einem wechselnden Default eines

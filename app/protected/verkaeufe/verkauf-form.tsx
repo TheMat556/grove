@@ -27,6 +27,7 @@ type Zeile = {
 	menge: number | null;
 	einzelpreis: number | null;
 	hoehe_cm: number | null;
+	kreuz_montiert: boolean;
 };
 
 function neueZeile(): Zeile {
@@ -36,6 +37,7 @@ function neueZeile(): Zeile {
 		menge: 1,
 		einzelpreis: null,
 		hoehe_cm: null,
+		kreuz_montiert: false,
 	};
 }
 
@@ -43,7 +45,7 @@ export type VerkaufZumBearbeiten = Tables<"tb_verkauf"> & {
 	positionen: Array<
 		Pick<
 			Tables<"tb_position">,
-			"produkt_id" | "menge" | "einzelpreis" | "hoehe_cm"
+			"produkt_id" | "menge" | "einzelpreis" | "hoehe_cm" | "kreuz_montiert"
 		>
 	>;
 	/** Verknüpfte Reservierung inkl. Kunde (für den Reservierungsschritt). */
@@ -62,6 +64,8 @@ function zeilenAusVerkauf(verkauf?: VerkaufZumBearbeiten): Zeile[] {
 		menge: position.menge,
 		einzelpreis: position.einzelpreis,
 		hoehe_cm: position.hoehe_cm,
+		// Bestehende Kreuz-Montage bleibt beim Bearbeiten erhalten.
+		kreuz_montiert: position.kreuz_montiert,
 	}));
 }
 
@@ -113,7 +117,7 @@ export function VerkaufForm({
 		// Leere Eingaben als 0; das Schema meldet sie als Feldfehler.
 		menge: zeile.menge ?? 0,
 		einzelpreis: zeile.einzelpreis ?? 0,
-		kreuz_montiert: false,
+		kreuz_montiert: zeile.kreuz_montiert,
 		hoehe_cm: zeile.hoehe_cm ?? 0,
 	}));
 	const summe = preisGesamt(positionen);

@@ -53,6 +53,9 @@ export function StandForm({ mode, stand, onSuccess }: StandFormProps) {
 					name="plz"
 					min={1000}
 					max={9999}
+					// Nicht auf den gültigen Bereich klemmen: out-of-range bleibt
+					// dadurch ungültig und wird vom Schema gemeldet statt still korrigiert.
+					allowOutOfRange
 					placeholder="1234"
 					defaultValue={stand?.standort?.plz}
 					invalid={!!state.errors?.plz}

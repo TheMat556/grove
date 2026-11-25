@@ -23,7 +23,21 @@ export function toLocalIsoDate(date: Date): string {
 /** ISO-Datum (yyyy-mm-dd) als lokale Mitternacht; ungültige Werte → undefined. */
 export function parseIsoDate(value: string): Date | undefined {
 	const date = new Date(`${value}T00:00:00`);
-	return Number.isNaN(date.getTime()) ? undefined : date;
+	if (Number.isNaN(date.getTime())) return undefined;
+
+	// "2026-02-30" rollt auf den 2. März; solche Werte sind kein gültiges Datum.
+	const [jahr, monat, tag] = value.slice(0, 10).split("-").map(Number);
+	if (Number.isFinite(jahr) && Number.isFinite(monat) && Number.isFinite(tag)) {
+		if (
+			date.getFullYear() !== jahr ||
+			date.getMonth() !== monat - 1 ||
+			date.getDate() !== tag
+		) {
+			return undefined;
+		}
+	}
+
+	return date;
 }
 
 const datumFormat = new Intl.DateTimeFormat("de-DE");

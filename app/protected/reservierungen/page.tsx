@@ -33,7 +33,7 @@ async function ReservierungenInhalt() {
 		selectedId ? getVerkaeufeMitDetails(selectedId) : Promise.resolve([]),
 	]);
 	const saisonName = saisons.find((saison) => saison.id === selectedId)?.name;
-	const bereit = !!selectedId && staende.length > 0 && kunden.length > 0;
+	const bereit = !!selectedId && staende.length > 0;
 	// Nur eigenständige Verkäufe (ohne Reservierung) lassen sich verknüpfen.
 	const verkaufsOptionen = verkaeufe
 		.filter((verkauf) => !verkauf.reservierung_id)
@@ -50,7 +50,7 @@ async function ReservierungenInhalt() {
 			bereit={bereit}
 			hinweis={
 				selectedId
-					? "Lege zuerst mindestens einen Stand und einen Kunden an."
+					? "Lege zuerst mindestens einen Stand an."
 					: "Lege zuerst eine Saison an."
 			}
 			aktion={

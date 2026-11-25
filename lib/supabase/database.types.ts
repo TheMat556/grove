@@ -622,6 +622,27 @@ export type Database = {
 				};
 				Returns: Tables<"tb_wareneingang">;
 			};
+			create_reservierung_mit_verkauf: {
+				Args: {
+					p_reservierung: Json;
+					p_verkauf_id?: string;
+				};
+				Returns: Tables<"tb_reservierung">;
+			};
+			update_verkauf_mit_positionen: {
+				Args: {
+					p_verkauf_id: string;
+					p_kopf: Json;
+					p_positionen: Json;
+				};
+				Returns: Tables<"tb_verkauf">;
+			};
+			delete_verkauf_mit_positionen: {
+				Args: {
+					p_verkauf_id: string;
+				};
+				Returns: undefined;
+			};
 		};
 		Enums: {
 			[_ in never]: never;

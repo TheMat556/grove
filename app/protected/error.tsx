@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 /** Fehlergrenze für alle Seiten unter /protected: Daten-Loader werfen, Next zeigt diese Seite. */
 export default function ProtectedError({
 	error,
-	reset,
+	unstable_retry,
 }: {
 	error: Error & { digest?: string };
-	reset: () => void;
+	unstable_retry: () => void;
 }) {
 	return (
 		<div className="flex flex-1 flex-col items-start gap-3">
@@ -16,7 +16,7 @@ export default function ProtectedError({
 			<p className="text-sm text-muted-foreground">
 				{error.message || "Unbekannter Fehler"}
 			</p>
-			<Button onClick={reset}>Erneut versuchen</Button>
+			<Button onClick={unstable_retry}>Erneut versuchen</Button>
 		</div>
 	);
 }

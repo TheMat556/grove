@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import {
 	createReservierungMitProfil,
+	createReservierungMitVerkauf,
 	deleteReservierung,
 	updateReservierung,
 } from "@/lib/data/reservierung";
-import { updateVerkauf } from "@/lib/data/verkauf";
 import { uuidSchema } from "@/lib/schemas/common";
 import { reservierungInsertSchema } from "@/lib/schemas/reservierung";
 import {
@@ -34,11 +34,10 @@ function reservierungInput(formData: FormData) {
 }
 
 /**
- * Legt eine Reservierung an. Optional mit verkauf_id: Dann wird sie direkt mit
- * dem Verkauf verknüpft (tb_verkauf.reservierung_id) – für das Anlegen aus dem
- * Verkaufsdialog heraus; ohne verkauf_id bleibt sie eigenständig.
- * ponytail: zwei Schreibvorgänge ohne DB-Transaktion – schlägt das Verknüpfen
- * fehl, bleibt eine unverknüpfte Reservierung stehen; RPC erst, wenn das real wird.
+ * Legt eine Reservierung an. Optional mit verkauf_id: Dann wird sie in derselben
+ * DB-Transaktion mit dem Verkauf verknüpft (tb_verkauf.reservierung_id) – für das
+ * Anlegen aus dem Verkaufsdialog heraus; ohne verkauf_id bleibt sie eigenständig.
+ * Ein bereits verknüpfter Verkauf wird nicht überschrieben, sondern gemeldet.
  */
 async function createReservierungAction(
 	_prevState: ReservierungFormState,
@@ -56,11 +55,10 @@ async function createReservierungAction(
 	}
 
 	try {
-		const reservierung = await createReservierungMitProfil(parsed.data);
 		if (verkaufId.success) {
-			await updateVerkauf(verkaufId.data, {
-				reservierung_id: reservierung.id,
-			});
+			await createReservierungMitVerkauf(parsed.data, verkaufId.data);
+		} else {
+			await createReservierungMitProfil(parsed.data);
 		}
 	} catch (e) {
 		return {
