@@ -28,6 +28,7 @@ export function ReservierungDialog({
 }: ReservierungDialogProps) {
 	return (
 		<CrudDialog
+			autoOpenNeu={mode === "create"}
 			trigger={trigger}
 			title={
 				mode === "create"

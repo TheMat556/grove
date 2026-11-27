@@ -57,18 +57,21 @@ export async function createReservierungMitVerkauf(
 }
 
 export type ReservierungMitDetails = Tables<"tb_reservierung"> & {
-	stand: Tables<"tb_stand"> | null;
+	// Standort für die Adresse im Dashboard (Google-Maps-Link).
+	stand:
+		| (Tables<"tb_stand"> & { standort: Tables<"tb_standort"> | null })
+		| null;
 	kunde: Tables<"tb_kunde"> | null;
 };
 
-/** Reservierungen einer Saison inkl. Stand und Kunde für die Liste. */
+/** Reservierungen einer Saison inkl. Stand (mit Standort) und Kunde. */
 export async function getReservierungenMitDetails(
 	saisonId: string,
 ): Promise<ReservierungMitDetails[]> {
 	const supabase = await createClient();
 	const { data, error } = await supabase
 		.from(TABLE)
-		.select("*, stand:tb_stand(*), kunde:tb_kunde(*)")
+		.select("*, stand:tb_stand(*, standort:tb_standort(*)), kunde:tb_kunde(*)")
 		.eq("saison_id", saisonId)
 		.order("geplantes_datum");
 	if (error) {

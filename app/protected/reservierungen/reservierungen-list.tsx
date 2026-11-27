@@ -15,6 +15,7 @@ import { euroFormat, StatusBadge, versandLabel } from "../verkaeufe/format";
 import { deleteReservierungAction } from "./actions";
 import { ReservierungDialog } from "./reservierung-dialog";
 import { ReservierungUebersichtDialog } from "./reservierung-uebersicht-dialog";
+import { ReservierungStatusToggle } from "./status-toggle";
 
 type ReservierungenListProps = {
 	saisonId: string;
@@ -77,6 +78,10 @@ export async function ReservierungenList({
 							</TableCell>
 							<TableCell>
 								<div className="flex justify-end gap-2">
+									<ReservierungStatusToggle
+										id={reservierung.id}
+										status={reservierung.status}
+									/>
 									<ReservierungUebersichtDialog
 										reservierung={reservierung}
 										trigger={

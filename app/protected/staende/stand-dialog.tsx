@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactElement, useCallback, useState } from "react";
+import { type ReactElement, useCallback } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -10,6 +10,7 @@ import {
 	DialogTrigger,
 } from "@/components/ui/dialog";
 import type { StandMitStandort } from "@/lib/data/stand";
+import { useAutoOpenNeu } from "../_crud/use-auto-open-neu";
 import { StandForm } from "./stand-form";
 
 type StandDialogProps = {
@@ -19,10 +20,10 @@ type StandDialogProps = {
 };
 
 export function StandDialog({ mode, stand, trigger }: StandDialogProps) {
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useAutoOpenNeu({ enabled: mode === "create" });
 	// Stabil halten: sonst re-triggert die Success-State-Änderung im Formular bei
 	// jedem Render und schließt den Dialog direkt nach dem Wiederöffnen.
-	const close = useCallback(() => setOpen(false), []);
+	const close = useCallback(() => setOpen(false), [setOpen]);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>

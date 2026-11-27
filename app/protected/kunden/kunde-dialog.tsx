@@ -15,6 +15,7 @@ type KundeDialogProps = {
 export function KundeDialog({ mode, kunde, trigger }: KundeDialogProps) {
 	return (
 		<CrudDialog
+			autoOpenNeu={mode === "create"}
 			trigger={trigger}
 			title={mode === "create" ? "Kunde anlegen" : "Kunde bearbeiten"}
 			description={

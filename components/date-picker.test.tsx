@@ -16,9 +16,14 @@ vi.mock("@/components/ui/popover", () => ({
 
 vi.mock("@/components/ui/calendar", () => ({
 	Calendar: ({ onSelect }: { onSelect: (value: Date | undefined) => void }) => (
-		<button type="button" onClick={() => onSelect(undefined)}>
-			Clear date
-		</button>
+		<>
+			<button type="button" onClick={() => onSelect(undefined)}>
+				Clear date
+			</button>
+			<button type="button" onClick={() => onSelect(new Date("2026-06-15"))}>
+				Pick date
+			</button>
+		</>
 	),
 }));
 
@@ -36,5 +41,21 @@ describe("DatePicker", () => {
 		fireEvent.click(screen.getByRole("button", { name: "Clear date" }));
 
 		expect(input).toHaveValue("2026-10-01");
+	});
+
+	it("meldet die Auswahl über onChange als ISO-Datum", () => {
+		const onChange = vi.fn();
+		render(
+			<DatePicker
+				id="start"
+				name="start_datum"
+				onChange={onChange}
+				onTouched={vi.fn()}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "Pick date" }));
+
+		expect(onChange).toHaveBeenCalledWith("2026-06-15");
 	});
 });

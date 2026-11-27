@@ -15,6 +15,7 @@ import {
 } from "@/lib/data/verkauf";
 import { formatIsoDatum } from "@/lib/saison";
 import { ConfirmDeleteForm } from "../_crud/confirm-delete-form";
+import { ReservierungStatusToggle } from "../reservierungen/status-toggle";
 import { deleteVerkaufAction } from "./actions";
 import {
 	datumFormat,
@@ -179,6 +180,11 @@ export async function VerkaeufeList({
 														{teil}
 													</Fragment>
 												))}
+												<ReservierungStatusToggle
+													id={reservierung.id}
+													status={reservierung.status}
+													size="icon-xs"
+												/>
 											</div>
 										</TableCell>
 									</TableRow>

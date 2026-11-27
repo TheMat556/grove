@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { CreateMenu } from "@/components/create-menu";
 import { MobileNav } from "@/components/mobile-nav";
 import { SaisonSwitcher } from "@/components/saison-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
@@ -22,7 +23,7 @@ export default function ProtectedLayout({
 			<Suspense>
 				<AppSidebar />
 			</Suspense>
-			<SidebarInset>
+			<SidebarInset className="min-w-0">
 				<MobileNav />
 				<header className="flex h-12 shrink-0 items-center gap-2 bg-transparent">
 					<div className="flex w-full items-center gap-1 px-3 lg:gap-2 lg:px-4">
@@ -31,6 +32,7 @@ export default function ProtectedLayout({
 							orientation="vertical"
 							className="mr-2 data-[orientation=vertical]:h-6"
 						/>
+						<CreateMenu />
 						<div className="ml-auto flex items-center gap-2">
 							<Suspense fallback={<Skeleton className="h-7 w-36 sm:w-44" />}>
 								<SaisonSwitcher />
@@ -41,7 +43,9 @@ export default function ProtectedLayout({
 				</header>
 				<div
 					className={cn(
-						"flex min-h-0 flex-1 flex-col rounded-xl bg-background p-4 shadow-sm md:mx-2 md:mb-2 max-md:mx-0 max-md:mb-0 max-md:rounded-b-none max-md:shadow-none max-md:overflow-y-auto max-md:pb-24",
+						// Immer scrollen: oberhalb von md gab es vorher keinen Scroll-Container,
+						// dadurch wurde der Inhalt am Fensterrand abgeschnitten.
+						"flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto rounded-xl bg-background p-4 shadow-sm md:mx-2 md:mb-2 max-md:mx-0 max-md:mb-0 max-md:rounded-b-none max-md:shadow-none max-md:pb-24",
 					)}
 				>
 					{children}

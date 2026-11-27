@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { DatePicker } from "@/components/date-picker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { toLocalIsoDate } from "@/lib/saison";
 import type { Tables } from "@/lib/supabase/database.types";
 import { useServerForm } from "../_crud/use-server-form";
 import { createKundeAction, type KundeFormState } from "../kunden/actions";
@@ -74,11 +75,40 @@ export function ReservierungForm({
 		onSuccess,
 	);
 	const [kundeId, setKundeId] = useState(reservierung?.kunde_id ?? "");
+	// Datum live validieren: Fehler erscheint direkt nach der Auswahl, nicht erst
+	// beim Absenden. Vergangene Tage sind im Kalender zusätzlich gesperrt.
+	const [datum, setDatum] = useState(reservierung?.geplantes_datum ?? "");
+	const [datumBeruehrt, setDatumBeruehrt] = useState(false);
+
+	function datumFehlerFuer(wert: string) {
+		if (!wert) return "Datum ist erforderlich.";
+		if (mode === "create" && wert < toLocalIsoDate(new Date())) {
+			return "Geplantes Datum darf nicht in der Vergangenheit liegen.";
+		}
+		return undefined;
+	}
+
+	const datumFehler = datumBeruehrt
+		? datumFehlerFuer(datum)
+		: state.errors?.geplantes_datum?.[0];
 	// Inline angelegte Kunden sofort anbieten (RSC-Refresh erreicht diesen Dialog nicht).
 	const [kundenLokal, setKundenLokal] = useState(kunden);
 	const [panelOffen, setPanelOffen] = useState(false);
 
 	const kundeFehler = panelOffen ? undefined : state.errors?.kunde_id?.[0];
+
+	// Der Server hat den Inline-Kunden schon angelegt, die Reservierung schlug
+	// aber fehl: Auswahl übernehmen, statt beim nächsten Klick doppelt anzulegen.
+	useEffect(() => {
+		const kunde = state.kunde;
+		if (!kunde) return;
+		setKundenLokal((alt) => [
+			kunde,
+			...alt.filter((vorhandener) => vorhandener.id !== kunde.id),
+		]);
+		setKundeId(kunde.id);
+		setPanelOffen(false);
+	}, [state.kunde]);
 
 	function kundeAngelegt(kunde: { id: string; name: string }) {
 		setKundenLokal((alt) => [
@@ -98,6 +128,7 @@ export function ReservierungForm({
 			{mode === "create" && verkaufId && (
 				<input type="hidden" name="verkauf_id" value={verkaufId} />
 			)}
+			{panelOffen && <input type="hidden" name="neuer_kunde" value="1" />}
 
 			<div className="grid gap-4 sm:grid-cols-2">
 				<Field
@@ -115,6 +146,7 @@ export function ReservierungForm({
 						<div className="animate-aufdecken grid">
 							<div className="min-h-0 overflow-clip">
 								<NeuerKundeInline
+									serverFehler={state.errors}
 									onCreated={kundeAngelegt}
 									onAbbrechen={() => setPanelOffen(false)}
 								/>
@@ -225,7 +257,7 @@ export function ReservierungForm({
 					<FieldError>{state.errors?.versandart?.[0]}</FieldError>
 				</Field>
 
-				<Field data-invalid={!!state.errors?.geplantes_datum}>
+				<Field data-invalid={!!datumFehler}>
 					<FieldLabel htmlFor={`${mode}-reservierung-datum`}>
 						Geplantes Datum
 					</FieldLabel>
@@ -233,9 +265,18 @@ export function ReservierungForm({
 						id={`${mode}-reservierung-datum`}
 						name="geplantes_datum"
 						defaultValue={reservierung?.geplantes_datum}
-						invalid={!!state.errors?.geplantes_datum}
+						invalid={!!datumFehler}
+						// Anlegen: vergangene Tage sind gesperrt (Bearbeiten alter Termine erlaubt).
+						minDatum={
+							mode === "create" ? toLocalIsoDate(new Date()) : undefined
+						}
+						onChange={(isoDatum) => {
+							setDatum(isoDatum);
+							setDatumBeruehrt(true);
+						}}
+						onTouched={() => setDatumBeruehrt(true)}
 					/>
-					<FieldError>{state.errors?.geplantes_datum?.[0]}</FieldError>
+					<FieldError>{datumFehler}</FieldError>
 				</Field>
 
 				<Field data-invalid={!!state.errors?.anzahlungsbetrag}>
@@ -343,9 +384,12 @@ const LEERE_KUNDE: KundeWerte = {
  * Meldet den angelegten Kunden an das Select zurück.
  */
 function NeuerKundeInline({
+	serverFehler,
 	onCreated,
 	onAbbrechen,
 }: {
+	/** Feldfehler aus dem Reservierungs-Submit („Reservierung anlegen"). */
+	serverFehler?: Record<string, string[] | undefined>;
 	onCreated: (kunde: { id: string; name: string }) => void;
 	onAbbrechen: () => void;
 }) {
@@ -357,10 +401,10 @@ function NeuerKundeInline({
 		},
 	);
 	const [werte, setWerte] = useState<KundeWerte>(LEERE_KUNDE);
-	const { fehler, markiereGeaendert } = useKundenFeldFehler(
-		werte,
-		state.errors,
-	);
+	const { fehler, markiereGeaendert } = useKundenFeldFehler(werte, {
+		...state.errors,
+		...serverFehler,
+	});
 
 	function anlegen() {
 		if (isPending) return;
