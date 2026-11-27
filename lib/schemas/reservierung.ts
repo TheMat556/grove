@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { toIsoDate } from "@/lib/saison";
 import { dateSchema, numericSchema, uuidSchema } from "@/lib/schemas/common";
 
 const statusSchema = z.enum(["offen", "erfuellt", "storniert"]);
@@ -34,6 +35,20 @@ export const reservierungInsertSchema = reservierungSchema
 		// Freitext, optional (nullable).
 		anmerkung: z.string().nullable().optional(),
 	});
+
+/**
+ * Anlegen-Schema: das geplante Datum darf nicht in der Vergangenheit liegen
+ * (Betriebs-Kalender). Bewusst NICHT im insertSchema, weil createCrud dort ein
+ * refinement-freies ZodObject für .partial() beim Update verlangt – beim
+ * Bearbeiten bleiben alte Termine erlaubt.
+ */
+export const reservierungCreateSchema = reservierungInsertSchema.refine(
+	(reservierung) => reservierung.geplantes_datum >= toIsoDate(new Date()),
+	{
+		message: "Geplantes Datum darf nicht in der Vergangenheit liegen.",
+		path: ["geplantes_datum"],
+	},
+);
 
 export type Reservierung = z.infer<typeof reservierungSchema>;
 export type ReservierungInsert = z.infer<typeof reservierungInsertSchema>;

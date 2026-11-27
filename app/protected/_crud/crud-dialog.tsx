@@ -6,7 +6,6 @@ import {
 	useCallback,
 	useEffect,
 	useRef,
-	useState,
 } from "react";
 import {
 	Dialog,
@@ -16,11 +15,14 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAutoOpenNeu } from "./use-auto-open-neu";
 
 type CrudDialogProps = {
 	trigger: ReactElement;
 	title: string;
 	description: string;
+	/** Öffnet nach dem Mount, wenn die URL ?neu=1 enthält (nur Anlegen-Dialoge). */
+	autoOpenNeu?: boolean;
 	/** Breite des Dialogs (Default sm:max-w-md, z. B. sm:max-w-2xl für Übersichten). */
 	className?: string;
 	/** Inhalt oberhalb von Titel/Beschreibung (z. B. ein Stepper). */
@@ -39,19 +41,23 @@ export function CrudDialog({
 	className,
 	aboveTitle,
 	onOpenChange,
+	autoOpenNeu = false,
 	children,
 }: CrudDialogProps) {
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useAutoOpenNeu({ enabled: autoOpenNeu });
 	// In einer Ref halten, damit `close` stabil bleibt und der Dialog nicht bei
 	// jedem Parent-Render über den callback-identitätsgetriebenen Effekt zumacht.
 	const onOpenChangeRef = useRef(onOpenChange);
 	useEffect(() => {
 		onOpenChangeRef.current = onOpenChange;
 	});
-	const changeOpen = useCallback((next: boolean) => {
-		setOpen(next);
-		onOpenChangeRef.current?.(next);
-	}, []);
+	const changeOpen = useCallback(
+		(next: boolean) => {
+			setOpen(next);
+			onOpenChangeRef.current?.(next);
+		},
+		[setOpen],
+	);
 	const close = useCallback(() => changeOpen(false), [changeOpen]);
 
 	return (

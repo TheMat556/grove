@@ -7,10 +7,30 @@ export type Json =
 	| Json[];
 
 export type Database = {
-	// Allows to automatically instantiate createClient with right options
-	// instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-	__InternalSupabase: {
-		PostgrestVersion: "14.5";
+	graphql_public: {
+		Tables: {
+			[_ in never]: never;
+		};
+		Views: {
+			[_ in never]: never;
+		};
+		Functions: {
+			graphql: {
+				Args: {
+					extensions?: Json;
+					operationName?: string;
+					query?: string;
+					variables?: Json;
+				};
+				Returns: Json;
+			};
+		};
+		Enums: {
+			[_ in never]: never;
+		};
+		CompositeTypes: {
+			[_ in never]: never;
+		};
 	};
 	public: {
 		Tables: {
@@ -63,6 +83,27 @@ export type Database = {
 					},
 				];
 			};
+			tb_einstellungen: {
+				Row: {
+					id: number;
+					sms_aktiv: boolean;
+					sms_uhrzeit: string;
+					sms_vorlauf_tage: number;
+				};
+				Insert: {
+					id?: number;
+					sms_aktiv?: boolean;
+					sms_uhrzeit?: string;
+					sms_vorlauf_tage?: number;
+				};
+				Update: {
+					id?: number;
+					sms_aktiv?: boolean;
+					sms_uhrzeit?: string;
+					sms_vorlauf_tage?: number;
+				};
+				Relationships: [];
+			};
 			tb_inventur: {
 				Row: {
 					datum: string;
@@ -103,17 +144,17 @@ export type Database = {
 						referencedColumns: ["id"];
 					},
 					{
-						foreignKeyName: "tb_inventur_saison_id_fkey";
-						columns: ["saison_id"];
-						isOneToOne: false;
-						referencedRelation: "tb_saison";
-						referencedColumns: ["id"];
-					},
-					{
 						foreignKeyName: "tb_inventur_profil_id_fkey";
 						columns: ["profil_id"];
 						isOneToOne: false;
 						referencedRelation: "tb_profil";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "tb_inventur_saison_id_fkey";
+						columns: ["saison_id"];
+						isOneToOne: false;
+						referencedRelation: "tb_saison";
 						referencedColumns: ["id"];
 					},
 					{
@@ -333,17 +374,17 @@ export type Database = {
 						referencedColumns: ["id"];
 					},
 					{
-						foreignKeyName: "tb_reservierung_saison_id_fkey";
-						columns: ["saison_id"];
-						isOneToOne: false;
-						referencedRelation: "tb_saison";
-						referencedColumns: ["id"];
-					},
-					{
 						foreignKeyName: "tb_reservierung_profil_id_fkey";
 						columns: ["profil_id"];
 						isOneToOne: false;
 						referencedRelation: "tb_profil";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "tb_reservierung_saison_id_fkey";
+						columns: ["saison_id"];
+						isOneToOne: false;
+						referencedRelation: "tb_saison";
 						referencedColumns: ["id"];
 					},
 					{
@@ -499,17 +540,17 @@ export type Database = {
 						referencedColumns: ["id"];
 					},
 					{
-						foreignKeyName: "tb_verkauf_saison_id_fkey";
-						columns: ["saison_id"];
-						isOneToOne: false;
-						referencedRelation: "tb_saison";
-						referencedColumns: ["id"];
-					},
-					{
 						foreignKeyName: "tb_verkauf_reservierung_id_fkey";
 						columns: ["reservierung_id"];
 						isOneToOne: false;
 						referencedRelation: "tb_reservierung";
+						referencedColumns: ["id"];
+					},
+					{
+						foreignKeyName: "tb_verkauf_saison_id_fkey";
+						columns: ["saison_id"];
+						isOneToOne: false;
+						referencedRelation: "tb_saison";
 						referencedColumns: ["id"];
 					},
 					{
@@ -608,40 +649,88 @@ export type Database = {
 			[_ in never]: never;
 		};
 		Functions: {
-			create_verkauf_mit_positionen: {
-				Args: {
-					p_verkauf: Json;
-					p_positionen: Json;
+			create_reservierung_mit_verkauf: {
+				Args: { p_reservierung: Json; p_verkauf_id?: string };
+				Returns: {
+					anmerkung: string | null;
+					anzahlungsbetrag: number | null;
+					geplantes_datum: string;
+					id: string;
+					kunde_id: string;
+					profil_id: string;
+					reserviert_am: string;
+					saison_id: string;
+					stand_id: string;
+					status: string;
+					versandart: string;
 				};
-				Returns: Tables<"tb_verkauf">;
+				SetofOptions: {
+					from: "*";
+					to: "tb_reservierung";
+					isOneToOne: true;
+					isSetofReturn: false;
+				};
+			};
+			create_verkauf_mit_positionen: {
+				Args: { p_positionen: Json; p_verkauf: Json };
+				Returns: {
+					aktion_bz: string | null;
+					anmerkung: string | null;
+					id: string;
+					preis_gesamt: number;
+					profil_id: string;
+					reservierung_id: string | null;
+					saison_id: string;
+					stand_id: string;
+					verkauft_am: string;
+				};
+				SetofOptions: {
+					from: "*";
+					to: "tb_verkauf";
+					isOneToOne: true;
+					isSetofReturn: false;
+				};
 			};
 			create_wareneingang_mit_positionen: {
-				Args: {
-					p_wareneingang: Json;
-					p_positionen: Json;
+				Args: { p_positionen: Json; p_wareneingang: Json };
+				Returns: {
+					datum: string;
+					erfasst_von: string;
+					id: string;
+					saison_id: string;
+					stand_id: string;
 				};
-				Returns: Tables<"tb_wareneingang">;
-			};
-			create_reservierung_mit_verkauf: {
-				Args: {
-					p_reservierung: Json;
-					p_verkauf_id?: string;
+				SetofOptions: {
+					from: "*";
+					to: "tb_wareneingang";
+					isOneToOne: true;
+					isSetofReturn: false;
 				};
-				Returns: Tables<"tb_reservierung">;
-			};
-			update_verkauf_mit_positionen: {
-				Args: {
-					p_verkauf_id: string;
-					p_kopf: Json;
-					p_positionen: Json;
-				};
-				Returns: Tables<"tb_verkauf">;
 			};
 			delete_verkauf_mit_positionen: {
-				Args: {
-					p_verkauf_id: string;
-				};
+				Args: { p_verkauf_id: string };
 				Returns: undefined;
+			};
+			fn_ist_admin: { Args: never; Returns: boolean };
+			update_verkauf_mit_positionen: {
+				Args: { p_kopf: Json; p_positionen: Json; p_verkauf_id: string };
+				Returns: {
+					aktion_bz: string | null;
+					anmerkung: string | null;
+					id: string;
+					preis_gesamt: number;
+					profil_id: string;
+					reservierung_id: string | null;
+					saison_id: string;
+					stand_id: string;
+					verkauft_am: string;
+				};
+				SetofOptions: {
+					from: "*";
+					to: "tb_verkauf";
+					isOneToOne: true;
+					isSetofReturn: false;
+				};
 			};
 		};
 		Enums: {
@@ -774,6 +863,9 @@ export type CompositeTypes<
 		: never;
 
 export const Constants = {
+	graphql_public: {
+		Enums: {},
+	},
 	public: {
 		Enums: {},
 	},

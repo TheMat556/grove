@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { CrudDialog } from "./crud-dialog";
 
@@ -26,5 +26,22 @@ describe("CrudDialog", () => {
 		// Ein neues close würde sie direkt nach dem Wiederöffnen erneut schließen.
 		expect(closings.length).toBeGreaterThanOrEqual(2);
 		expect(new Set(closings).size).toBe(1);
+	});
+
+	it("öffnet bei ?neu=1 automatisch (Plus-Menü)", async () => {
+		window.history.replaceState({}, "", "/protected/produkte?neu=1");
+		render(
+			<CrudDialog
+				autoOpenNeu
+				trigger={<button type="button">Öffnen</button>}
+				title="Vom Plus-Menü"
+				description="Test"
+			>
+				{() => <div />}
+			</CrudDialog>,
+		);
+
+		expect(await screen.findByRole("dialog")).toBeInTheDocument();
+		window.history.replaceState({}, "", "/protected");
 	});
 });

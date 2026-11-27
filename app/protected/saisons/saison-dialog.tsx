@@ -15,6 +15,7 @@ type SaisonDialogProps = {
 export function SaisonDialog({ mode, saison, trigger }: SaisonDialogProps) {
 	return (
 		<CrudDialog
+			autoOpenNeu={mode === "create"}
 			trigger={trigger}
 			title={
 				mode === "create"

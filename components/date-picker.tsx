@@ -16,6 +16,12 @@ type DatePickerProps = {
 	name: string;
 	defaultValue?: string;
 	invalid?: boolean;
+	/** ISO-Datum (yyyy-mm-dd); Tage davor sind im Kalender gesperrt. */
+	minDatum?: string;
+	/** Wird nach jeder Auswahl mit dem gewählten ISO-Datum aufgerufen. */
+	onChange?: (isoDatum: string) => void;
+	/** Wird aufgerufen, wenn der Kalender geschlossen wird (für Live-Validierung). */
+	onTouched?: () => void;
 };
 
 export function DatePicker({
@@ -23,11 +29,15 @@ export function DatePicker({
 	name,
 	defaultValue,
 	invalid,
+	minDatum,
+	onChange,
+	onTouched,
 }: DatePickerProps) {
 	const [date, setDate] = useState(() =>
 		defaultValue ? parseIsoDate(defaultValue) : undefined,
 	);
 	const [open, setOpen] = useState(false);
+	const minDate = minDatum ? parseIsoDate(minDatum) : undefined;
 
 	return (
 		<>
@@ -36,7 +46,13 @@ export function DatePicker({
 				name={name}
 				value={date ? toLocalIsoDate(date) : ""}
 			/>
-			<Popover open={open} onOpenChange={setOpen}>
+			<Popover
+				open={open}
+				onOpenChange={(next) => {
+					setOpen(next);
+					if (!next) onTouched?.();
+				}}
+			>
 				<PopoverTrigger
 					render={
 						<Button
@@ -57,10 +73,12 @@ export function DatePicker({
 						required
 						captionLayout="dropdown"
 						selected={date}
+						disabled={minDate ? { before: minDate } : undefined}
 						onSelect={(selected) => {
 							if (!selected) return;
 							setDate(selected);
 							setOpen(false);
+							onChange?.(toLocalIsoDate(selected));
 						}}
 						autoFocus
 					/>

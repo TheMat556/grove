@@ -1,5 +1,6 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { NEU_DIALOG_EVENT } from "@/lib/neu-dialog";
 
 const { currentPath } = vi.hoisted(() => ({
 	currentPath: { value: "/protected/kunden" },
@@ -25,15 +26,32 @@ describe("MobileNav", () => {
 		);
 	});
 
-	it("renders Einstellungen as non-interactive placeholder", () => {
+	it("links to the settings page", () => {
+		render(<MobileNav />);
+
+		expect(screen.getByRole("link", { name: "Einstellungen" })).toHaveAttribute(
+			"href",
+			"/protected/einstellungen",
+		);
+	});
+
+	it("hat einen zentralen Plus-Button für neue Verkäufe", () => {
 		render(<MobileNav />);
 
 		expect(
-			screen.queryByRole("link", { name: "Verkauf erfassen" }),
-		).not.toBeInTheDocument();
-		expect(screen.getByText("Einstellungen")).toBeInTheDocument();
-		expect(
-			screen.queryByRole("button", { name: /Einstellungen/ }),
-		).not.toBeInTheDocument();
+			screen.getByRole("link", { name: "Verkauf erfassen" }),
+		).toHaveAttribute("href", "/protected/verkaeufe?neu=1");
+	});
+
+	it("öffnet auf der Verkäufe-Seite den Dialog per Event statt zu navigieren", () => {
+		currentPath.value = "/protected/verkaeufe";
+		const handler = vi.fn();
+		window.addEventListener(NEU_DIALOG_EVENT, handler);
+		render(<MobileNav />);
+
+		fireEvent.click(screen.getByRole("link", { name: "Verkauf erfassen" }));
+
+		expect(handler).toHaveBeenCalledTimes(1);
+		window.removeEventListener(NEU_DIALOG_EVENT, handler);
 	});
 });

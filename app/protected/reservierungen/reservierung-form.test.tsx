@@ -15,8 +15,18 @@ vi.mock("@/components/ui/popover", () => ({
 	PopoverContent: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 vi.mock("@/components/ui/calendar", () => ({
-	Calendar: ({ onSelect }: { onSelect: (value: Date | undefined) => void }) => (
-		<button type="button" onClick={() => onSelect(new Date("2026-06-15"))}>
+	Calendar: ({
+		onSelect,
+		disabled,
+	}: {
+		onSelect: (value: Date | undefined) => void;
+		disabled?: { before: Date };
+	}) => (
+		<button
+			type="button"
+			data-gesperrt={disabled?.before ? "ja" : "nein"}
+			onClick={() => onSelect(new Date("2026-06-15"))}
+		>
 			Pick date
 		</button>
 	),
@@ -185,6 +195,68 @@ describe("ReservierungForm", () => {
 		expect(formData.get("geplantes_datum")).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 	});
 
+	it("sperrt beim Anlegen vergangene Tage im Kalender", () => {
+		renderForm();
+
+		expect(screen.getByRole("button", { name: "Pick date" })).toHaveAttribute(
+			"data-gesperrt",
+			"ja",
+		);
+	});
+
+	it("blendet einen Server-Fehler zum Datum aus, sobald ein Datum gewählt ist", async () => {
+		vi.mocked(createReservierungAction).mockResolvedValueOnce({
+			errors: { geplantes_datum: ["Ungültiges Datum"] },
+		} as never);
+		renderForm();
+
+		submitForm();
+		await waitFor(() => {
+			expect(screen.getByText("Ungültiges Datum")).toBeInTheDocument();
+		});
+
+		fireEvent.click(screen.getByRole("button", { name: "Pick date" }));
+
+		await waitFor(() => {
+			expect(screen.queryByText("Ungültiges Datum")).not.toBeInTheDocument();
+		});
+	});
+
+	it("erlaubt beim Bearbeiten weiterhin vergangene Termine", () => {
+		render(
+			<ReservierungForm
+				mode="edit"
+				saisonId={saisonId}
+				staende={[{ id: standId, bezeichnung: "Stand Nord" }]}
+				kunden={[{ id: kundeId, name: "Familie Huber" }]}
+				reservierung={
+					{
+						id: "66666666-6666-4666-8666-666666666666",
+						saison_id: saisonId,
+						stand_id: standId,
+						profil_id: "77777777-7777-4777-8777-777777777777",
+						kunde_id: kundeId,
+						versandart: "abholung",
+						geplantes_datum: "2026-06-01",
+						status: "offen",
+						anzahlungsbetrag: null,
+						anmerkung: null,
+						reserviert_am: "2026-05-01T09:00:00.000Z",
+					} as never
+				}
+				onSuccess={() => {}}
+			/>,
+		);
+
+		fireEvent.click(screen.getByRole("button", { name: "Pick date" }));
+
+		expect(
+			screen.queryByText(
+				"Geplantes Datum darf nicht in der Vergangenheit liegen.",
+			),
+		).not.toBeInTheDocument();
+	});
+
 	it("sendet den optional gewählten Verkauf mit", async () => {
 		renderForm({ verkaeufe: [{ id: verkaufId, label: "Testverkauf" }] });
 
@@ -237,6 +309,61 @@ describe("ReservierungForm", () => {
 			expect(screen.getByLabelText("Kunde")).toHaveValue(neuerKundeId);
 		});
 		expect(createReservierungAction).not.toHaveBeenCalled();
+	});
+
+	it("sendet beim „Reservierung anlegen“ den Inline-Kunden mit", async () => {
+		renderForm();
+
+		fireEvent.change(screen.getByLabelText("Kunde"), {
+			target: { value: "__anlegen__" },
+		});
+		await waitFor(() => {
+			expect(screen.getByLabelText("Name")).toBeInTheDocument();
+		});
+		fireEvent.change(screen.getByLabelText("Name"), {
+			target: { value: "Neue Familie" },
+		});
+		fireEvent.change(screen.getByLabelText("Telefon"), {
+			target: { value: "+43 664 1234567" },
+		});
+		fireEvent.change(screen.getByLabelText("PLZ"), {
+			target: { value: "3100" },
+		});
+		fireEvent.change(screen.getByLabelText("Adresse"), {
+			target: { value: "Hauptstraße 1" },
+		});
+
+		submitForm();
+		const formData = await gesendeteFormData();
+
+		// Ein Klick auf „Reservierung anlegen" schickt den neuen Kunden mit.
+		expect(formData.get("neuer_kunde")).toBe("1");
+		expect(formData.get("name")).toBe("Neue Familie");
+		expect(formData.get("telefon")).toBe("+43 664 1234567");
+		expect(formData.get("plz")).toBe("3100");
+		expect(formData.get("adresse")).toBe("Hauptstraße 1");
+	});
+
+	it("zeigt Feldfehler aus dem Reservierungs-Submit im Inline-Kundenformular", async () => {
+		vi.mocked(createReservierungAction).mockResolvedValueOnce({
+			errors: { plz: ["PLZ zwischen 1000 und 9999."] },
+		} as never);
+		renderForm();
+
+		fireEvent.change(screen.getByLabelText("Kunde"), {
+			target: { value: "__anlegen__" },
+		});
+		await waitFor(() => {
+			expect(screen.getByLabelText("Name")).toBeInTheDocument();
+		});
+
+		submitForm();
+
+		await waitFor(() => {
+			expect(
+				screen.getByText("PLZ zwischen 1000 und 9999."),
+			).toBeInTheDocument();
+		});
 	});
 
 	it("validiert das Inline-Kundenformular beim Tippen", () => {

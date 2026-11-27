@@ -1,3 +1,4 @@
+import { googleMapsUrl } from "@/lib/maps";
 import { formatIsoDatum } from "@/lib/saison";
 import { euroFormat, kundeAdresse, versandLabel } from "../verkaeufe/format";
 
@@ -22,7 +23,20 @@ export function ReservierungAngaben({
 			<dt className="text-muted-foreground">Kunde</dt>
 			<dd>{kunde?.name ?? "–"}</dd>
 			<dt className="text-muted-foreground">Adresse</dt>
-			<dd>{kundeAdresse(kunde)}</dd>
+			<dd>
+				{kunde?.adresse ? (
+					<a
+						href={googleMapsUrl(kunde)}
+						target="_blank"
+						rel="noreferrer"
+						className="underline underline-offset-2"
+					>
+						{kundeAdresse(kunde)}
+					</a>
+				) : (
+					kundeAdresse(kunde)
+				)}
+			</dd>
 			<dt className="text-muted-foreground">Versandart</dt>
 			<dd>{versandLabel(versandart)}</dd>
 			<dt className="text-muted-foreground">Geplantes Datum</dt>

@@ -36,6 +36,14 @@ describe("ReservierungUebersichtDialog", () => {
 		expect(screen.getByText("3100 Hauptstraße 1")).toBeInTheDocument();
 		expect(screen.getByText("+43 664 1234567")).toBeInTheDocument();
 		expect(screen.getByText("Stand Nord")).toBeInTheDocument();
+		expect(screen.queryByText("Stand-Adresse")).not.toBeInTheDocument();
+		// Die Kundenadresse ist der Google-Maps-Link, nicht die Stand-Adresse.
+		expect(
+			screen.getByRole("link", { name: "3100 Hauptstraße 1" }),
+		).toHaveAttribute(
+			"href",
+			expect.stringContaining("google.com/maps/search"),
+		);
 		expect(screen.getByText("Lieferung")).toBeInTheDocument();
 		expect(screen.getByText("Offen")).toBeInTheDocument();
 		expect(screen.getByText(/20,00/)).toBeInTheDocument();

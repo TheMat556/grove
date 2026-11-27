@@ -94,6 +94,7 @@ export function VerkaufDialog({
 	return (
 		<CrudDialog
 			aboveTitle={stepper}
+			autoOpenNeu={!verkauf}
 			className="sm:max-w-xl"
 			trigger={trigger}
 			title={

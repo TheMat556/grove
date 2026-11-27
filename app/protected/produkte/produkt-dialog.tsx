@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactElement, useCallback, useState } from "react";
+import { type ReactElement, useCallback } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -9,6 +9,7 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
+import { useAutoOpenNeu } from "../_crud/use-auto-open-neu";
 import { ProduktForm, type ProduktFormValues } from "./produkt-form";
 
 type ProduktDialogProps = {
@@ -19,9 +20,9 @@ type ProduktDialogProps = {
 
 /** Dialog zum Anlegen oder Bearbeiten eines Produkts; schließt nach Erfolg. */
 export function ProduktDialog({ mode, produkt, trigger }: ProduktDialogProps) {
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useAutoOpenNeu({ enabled: mode === "create" });
 	// Stabil halten: sonst re-triggert das Success-State des Formulars den Effect.
-	const close = useCallback(() => setOpen(false), []);
+	const close = useCallback(() => setOpen(false), [setOpen]);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>

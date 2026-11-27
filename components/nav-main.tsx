@@ -7,6 +7,7 @@ import {
 	type LucideIcon,
 	Package,
 	Receipt,
+	Settings,
 	Tag,
 	TreePine,
 	User,
@@ -49,6 +50,7 @@ const items: NavItem[] = [
 		icon: Tag,
 	},
 	{ title: "Profile", url: "/protected/profile", icon: User },
+	{ title: "Einstellungen", url: "/protected/einstellungen", icon: Settings },
 ];
 
 export function NavMain() {
