@@ -1,21 +1,33 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { toIsoDate } from "@/lib/saison";
+import type { UmsatzVerkauf } from "@/lib/umsatz";
 import { UmsatzProStandCard } from "./umsatz-pro-stand";
 
-const daten = {
-	heute: [{ standId: "a", stand: "Heute-Stand", umsatz: 100, anzahl: 1 }],
-	dreiTage: [
-		{ standId: "a", stand: "Drei-Tage-Stand", umsatz: 150, anzahl: 2 },
-	],
-	woche: [{ standId: "a", stand: "Wochen-Stand", umsatz: 200, anzahl: 3 }],
-	gesamt: [{ standId: "a", stand: "Saison-Stand", umsatz: 900, anzahl: 9 }],
-};
+const heute = toIsoDate(new Date());
+const vorFuenfTagen = toIsoDate(new Date(Date.now() - 5 * 86_400_000));
+
+const verkaeufe: UmsatzVerkauf[] = [
+	{
+		stand_id: "a",
+		stand: "Heute-Stand",
+		verkauft_am: `${heute}T10:00:00Z`,
+		preis_gesamt: 100,
+	},
+	{
+		stand_id: "b",
+		stand: "Wochen-Stand",
+		verkauft_am: `${vorFuenfTagen}T10:00:00Z`,
+		preis_gesamt: 200,
+	},
+];
 
 describe("UmsatzProStandCard", () => {
 	it("zeigt standardmäßig die letzte Woche und filtert per Select", () => {
-		render(<UmsatzProStandCard daten={daten} />);
+		render(<UmsatzProStandCard verkaeufe={verkaeufe} />);
 
 		expect(screen.getByText("Wochen-Stand")).toBeInTheDocument();
+		expect(screen.getByText("Heute-Stand")).toBeInTheDocument();
 
 		fireEvent.change(screen.getByLabelText("Zeitraum"), {
 			target: { value: "heute" },
@@ -26,11 +38,7 @@ describe("UmsatzProStandCard", () => {
 	});
 
 	it("zeigt einen Hinweis, wenn der Zeitraum keine Verkäufe hat", () => {
-		render(
-			<UmsatzProStandCard
-				daten={{ ...daten, heute: [], dreiTage: [], woche: [], gesamt: [] }}
-			/>,
-		);
+		render(<UmsatzProStandCard verkaeufe={[]} />);
 
 		expect(
 			screen.getByText("Keine Verkäufe in diesem Zeitraum."),

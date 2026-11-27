@@ -39,11 +39,6 @@ import { getVerkaeufeMitDetails } from "@/lib/data/verkauf";
 import { googleMapsUrl } from "@/lib/maps";
 import { formatIsoDatum, toIsoDate } from "@/lib/saison";
 import { getSaisonSelection } from "@/lib/saison-context";
-import {
-	UMSATZ_ZEITRAEUME,
-	type UmsatzZeitraum,
-	umsatzProStand,
-} from "@/lib/umsatz";
 import { cn } from "@/lib/utils";
 import { zaehlungenProTag } from "@/lib/verlauf";
 import { DashboardStandFilter } from "./dashboard-stand-filter";
@@ -175,19 +170,13 @@ async function Dashboard({
 		14,
 	);
 
-	// Umsatz je Stand für alle Filter-Zeiträume einmal serverseitig aggregieren.
+	// Umsatz je Stand: der Client aggregiert beim Umschalten des Zeitraums.
 	const umsatzVerkaufe = sichtbareVerkaeufe.map((verkauf) => ({
 		stand_id: verkauf.stand_id,
 		stand: verkauf.stand?.bezeichnung ?? "–",
 		verkauft_am: verkauf.verkauft_am,
 		preis_gesamt: verkauf.preis_gesamt,
 	}));
-	const umsatzDaten = Object.fromEntries(
-		UMSATZ_ZEITRAEUME.map((zeitraum) => [
-			zeitraum.wert,
-			umsatzProStand(umsatzVerkaufe, zeitraum.wert),
-		]),
-	) as Record<UmsatzZeitraum, ReturnType<typeof umsatzProStand>>;
 
 	const smsHinweis = !einstellungen
 		? "SMS-Erinnerung noch nicht konfiguriert"
@@ -221,7 +210,6 @@ async function Dashboard({
 					icon={Truck}
 					farbe={faelligeLieferungen.length > 0 ? "rot" : "amber"}
 					werte={lieferungsSerie}
-					warnung={faelligeLieferungen.length > 0}
 				/>
 			</div>
 
@@ -293,7 +281,7 @@ async function Dashboard({
 				</CardContent>
 			</Card>
 
-			<UmsatzProStandCard daten={umsatzDaten} />
+			<UmsatzProStandCard verkaeufe={umsatzVerkaufe} />
 		</div>
 	);
 }
@@ -334,7 +322,6 @@ function Kennzahl({
 	icon: Icon,
 	farbe,
 	werte,
-	warnung = false,
 }: {
 	titel: string;
 	wert: number;
@@ -343,7 +330,6 @@ function Kennzahl({
 	farbe: KennzahlFarbe;
 	/** Tageswerte der letzten 14 Tage für den kleinen Graphen rechts. */
 	werte: number[];
-	warnung?: boolean;
 }) {
 	const farben = kennzahlFarben[farbe];
 
@@ -363,10 +349,7 @@ function Kennzahl({
 						<div className="flex min-w-0 flex-col">
 							<CardDescription>{titel}</CardDescription>
 							<CardTitle
-								className={cn(
-									"font-bold text-3xl tabular-nums",
-									warnung ? "text-destructive" : farben.wert,
-								)}
+								className={cn("font-bold text-3xl tabular-nums", farben.wert)}
 							>
 								{wert}
 							</CardTitle>
@@ -399,7 +382,6 @@ function Sparkline({
 	const x = (index: number) =>
 		rand + (index / (werte.length - 1)) * (breite - rand * 2);
 	const y = (wert: number) => hoehe - rand - (wert / max) * (hoehe - rand * 2);
-	const letzter = werte[werte.length - 1] ?? 0;
 
 	return (
 		<svg
@@ -417,7 +399,7 @@ function Sparkline({
 			/>
 			<circle
 				cx={x(werte.length - 1)}
-				cy={y(letzter)}
+				cy={y(werte[werte.length - 1])}
 				r={2}
 				className="fill-current"
 			/>

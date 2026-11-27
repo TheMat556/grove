@@ -21,8 +21,7 @@ export function NeuLink({
 		onClick?.(event);
 		if (event.defaultPrevented) return;
 
-		const ziel = new URL(href.toString(), window.location.origin);
-		if (ziel.pathname !== pathname) return;
+		if (event.currentTarget.pathname !== pathname) return;
 
 		event.preventDefault();
 		window.dispatchEvent(new Event(NEU_DIALOG_EVENT));

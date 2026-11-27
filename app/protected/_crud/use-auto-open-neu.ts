@@ -4,19 +4,13 @@ import { useEffect, useState } from "react";
 import { NEU_DIALOG_EVENT } from "@/lib/neu-dialog";
 
 /**
- * Dialog-Öffnungszustand für Anlegen-Dialoge: startet mit `initial` und öffnet
- * nach dem Mount automatisch, wenn die Seite über das Plus-Menü mit `?neu=1`
- * aufgerufen wurde. Der Effekt (statt Initialwert) hält Server-HTML und ersten
- * Client-Render identisch.
+ * Dialog-Öffnungszustand für Anlegen-Dialoge: öffnet nach dem Mount, wenn die
+ * Seite über das Plus-Menü mit `?neu=1` aufgerufen wurde oder das Menü das
+ * Event auf der eigenen Seite feuert. Der Effekt (statt Initialwert) hält
+ * Server-HTML und ersten Client-Render identisch.
  */
-export function useAutoOpenNeu({
-	initial = false,
-	enabled = true,
-}: {
-	initial?: boolean;
-	enabled?: boolean;
-} = {}) {
-	const [open, setOpen] = useState(initial);
+export function useAutoOpenNeu({ enabled = true }: { enabled?: boolean } = {}) {
+	const [open, setOpen] = useState(false);
 
 	useEffect(() => {
 		if (!enabled) return;

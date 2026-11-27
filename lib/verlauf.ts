@@ -9,20 +9,16 @@ export function zaehlungenProTag(
 	tage: number,
 	now = new Date(),
 ): number[] {
-	const heute = new Date(`${toIsoDate(now)}T00:00:00Z`);
-	const proTag = new Map<string, number>();
-
-	for (let i = tage - 1; i >= 0; i--) {
-		const tag = new Date(heute);
-		tag.setUTCDate(tag.getUTCDate() - i);
-		proTag.set(tag.toISOString().slice(0, 10), 0);
-	}
+	const heute = new Date(`${toIsoDate(now)}T00:00:00Z`).getTime();
+	const werte = Array.from({ length: tage }, () => 0);
 
 	for (const zeitpunkt of zeitpunkte) {
-		const tag = toIsoDate(new Date(zeitpunkt));
-		const bisher = proTag.get(tag);
-		if (bisher !== undefined) proTag.set(tag, bisher + 1);
+		const tag = new Date(
+			`${toIsoDate(new Date(zeitpunkt))}T00:00:00Z`,
+		).getTime();
+		const diff = (heute - tag) / 86_400_000;
+		if (diff >= 0 && diff < tage) werte[tage - 1 - diff] += 1;
 	}
 
-	return [...proTag.values()];
+	return werte;
 }

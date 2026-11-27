@@ -21,8 +21,6 @@ type CrudDialogProps = {
 	trigger: ReactElement;
 	title: string;
 	description: string;
-	/** Startet geöffnet, z. B. über einen Deep-Link (?neu=1) vom Plus-Button. */
-	defaultOpen?: boolean;
 	/** Öffnet nach dem Mount, wenn die URL ?neu=1 enthält (nur Anlegen-Dialoge). */
 	autoOpenNeu?: boolean;
 	/** Breite des Dialogs (Default sm:max-w-md, z. B. sm:max-w-2xl für Übersichten). */
@@ -43,14 +41,10 @@ export function CrudDialog({
 	className,
 	aboveTitle,
 	onOpenChange,
-	defaultOpen = false,
 	autoOpenNeu = false,
 	children,
 }: CrudDialogProps) {
-	const [open, setOpen] = useAutoOpenNeu({
-		initial: defaultOpen,
-		enabled: autoOpenNeu,
-	});
+	const [open, setOpen] = useAutoOpenNeu({ enabled: autoOpenNeu });
 	// In einer Ref halten, damit `close` stabil bleibt und der Dialog nicht bei
 	// jedem Parent-Render über den callback-identitätsgetriebenen Effekt zumacht.
 	const onOpenChangeRef = useRef(onOpenChange);

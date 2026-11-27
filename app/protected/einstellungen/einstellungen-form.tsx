@@ -11,21 +11,16 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { EinstellungenUpdate } from "@/lib/schemas/einstellungen";
+import type { EntityFormState } from "../_crud/entity-actions";
 import { useServerForm } from "../_crud/use-server-form";
-import {
-	type EinstellungenFormState,
-	updateEinstellungenAction,
-} from "./actions";
+import { updateEinstellungenAction } from "./actions";
 
 type EinstellungenFormProps = {
-	einstellungen: {
-		sms_aktiv: boolean;
-		sms_vorlauf_tage: number;
-		sms_uhrzeit: string;
-	};
+	einstellungen: EinstellungenUpdate;
 };
 
-const initialState: EinstellungenFormState = {};
+const initialState: EntityFormState = {};
 
 /** Formular für die globalen Einstellungen; Fehler kommen aus der Server-Action. */
 export function EinstellungenForm({ einstellungen }: EinstellungenFormProps) {

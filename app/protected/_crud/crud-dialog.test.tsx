@@ -44,20 +44,4 @@ describe("CrudDialog", () => {
 		expect(await screen.findByRole("dialog")).toBeInTheDocument();
 		window.history.replaceState({}, "", "/protected");
 	});
-
-	it("startet mit defaultOpen direkt geöffnet (Deep-Link vom Plus-Button)", async () => {
-		render(
-			<CrudDialog
-				defaultOpen
-				trigger={<button type="button">Öffnen</button>}
-				title="Direkt offen"
-				description="Test"
-			>
-				{() => <div />}
-			</CrudDialog>,
-		);
-
-		expect(await screen.findByRole("dialog")).toBeInTheDocument();
-		expect(screen.getByText("Direkt offen")).toBeInTheDocument();
-	});
 });

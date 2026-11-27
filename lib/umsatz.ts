@@ -23,6 +23,13 @@ export type UmsatzProStandZeile = {
 	anzahl: number;
 };
 
+/** Erster Tag des Zeitraums als Offset in Tagen vor heute; fehlt = ganze Saison. */
+const ZEITRAUM_TAGE: Partial<Record<UmsatzZeitraum, number>> = {
+	heute: 0,
+	dreiTage: 2,
+	woche: 6,
+};
+
 /** ISO-Datum vor `tage` Tagen (heute = 0), im Betriebs-Kalender. */
 function grenzTag(heute: string, tage: number) {
 	const tag = new Date(`${heute}T00:00:00Z`);
@@ -41,14 +48,8 @@ export function umsatzProStand(
 	now = new Date(),
 ): UmsatzProStandZeile[] {
 	const heute = toIsoDate(now);
-	const grenze =
-		zeitraum === "heute"
-			? grenzTag(heute, 0)
-			: zeitraum === "dreiTage"
-				? grenzTag(heute, 2)
-				: zeitraum === "woche"
-					? grenzTag(heute, 6)
-					: undefined;
+	const zeitTage = ZEITRAUM_TAGE[zeitraum];
+	const grenze = zeitTage === undefined ? undefined : grenzTag(heute, zeitTage);
 
 	const proStand = new Map<string, UmsatzProStandZeile>();
 	for (const verkauf of verkaeufe) {

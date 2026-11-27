@@ -30,20 +30,16 @@ export const getEinstellungen = cache(async (): Promise<Einstellungen> => {
 /** Schreibt die geänderten Einstellungen in die eine Zeile. */
 export async function updateEinstellungen(
 	input: EinstellungenUpdate,
-): Promise<Einstellungen> {
+): Promise<void> {
 	const supabase = await createClient();
-	const { data, error } = await supabase
+	const { error } = await supabase
 		.from("tb_einstellungen")
 		.update(input)
-		.eq("id", EINZELNE_ZEILE)
-		.select()
-		.single();
+		.eq("id", EINZELNE_ZEILE);
 
 	if (error) {
 		throw new Error(
 			`Einstellungen konnten nicht gespeichert werden: ${error.message}`,
 		);
 	}
-
-	return data;
 }

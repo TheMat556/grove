@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { DatePicker } from "@/components/date-picker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -75,21 +75,17 @@ export function ReservierungForm({
 		onSuccess,
 	);
 	const [kundeId, setKundeId] = useState(reservierung?.kunde_id ?? "");
-	// Datum live validieren: Fehler erscheint direkt nach der Auswahl, nicht erst
-	// beim Absenden. Vergangene Tage sind im Kalender zusätzlich gesperrt.
+	// Datum live validieren: nur der leere Fall; vergangene Tage sperrt der
+	// Kalender, der Server prüft sie zusätzlich im Schema.
 	const [datum, setDatum] = useState(reservierung?.geplantes_datum ?? "");
 	const [datumBeruehrt, setDatumBeruehrt] = useState(false);
 
-	function datumFehlerFuer(wert: string) {
-		if (!wert) return "Datum ist erforderlich.";
-		if (mode === "create" && wert < toLocalIsoDate(new Date())) {
-			return "Geplantes Datum darf nicht in der Vergangenheit liegen.";
-		}
-		return undefined;
-	}
-
+	// Nach der ersten Berührung gilt nur noch der lokale Zustand: ein gewähltes
+	// Datum ist gültig (der Kalender liefert ISO-Daten), sonst fehlt es.
 	const datumFehler = datumBeruehrt
-		? datumFehlerFuer(datum)
+		? datum
+			? undefined
+			: "Datum ist erforderlich."
 		: state.errors?.geplantes_datum?.[0];
 	// Inline angelegte Kunden sofort anbieten (RSC-Refresh erreicht diesen Dialog nicht).
 	const [kundenLokal, setKundenLokal] = useState(kunden);
@@ -97,27 +93,20 @@ export function ReservierungForm({
 
 	const kundeFehler = panelOffen ? undefined : state.errors?.kunde_id?.[0];
 
+	const kundeAngelegt = useCallback((kunde: { id: string; name: string }) => {
+		setKundenLokal((alt) => [
+			kunde,
+			...alt.filter((vorhandener) => vorhandener.id !== kunde.id),
+		]);
+		setKundeId(kunde.id);
+		setPanelOffen(false);
+	}, []);
+
 	// Der Server hat den Inline-Kunden schon angelegt, die Reservierung schlug
 	// aber fehl: Auswahl übernehmen, statt beim nächsten Klick doppelt anzulegen.
 	useEffect(() => {
-		const kunde = state.kunde;
-		if (!kunde) return;
-		setKundenLokal((alt) => [
-			kunde,
-			...alt.filter((vorhandener) => vorhandener.id !== kunde.id),
-		]);
-		setKundeId(kunde.id);
-		setPanelOffen(false);
-	}, [state.kunde]);
-
-	function kundeAngelegt(kunde: { id: string; name: string }) {
-		setKundenLokal((alt) => [
-			kunde,
-			...alt.filter((vorhandener) => vorhandener.id !== kunde.id),
-		]);
-		setKundeId(kunde.id);
-		setPanelOffen(false);
-	}
+		if (state.kunde) kundeAngelegt(state.kunde);
+	}, [state.kunde, kundeAngelegt]);
 
 	return (
 		<form {...formProps} className="flex flex-col gap-4">

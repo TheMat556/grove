@@ -10,29 +10,6 @@ type ReservierungAngabenProps = {
 	anmerkung: string | null;
 };
 
-/** Kundenadresse als Google-Maps-Link (ohne Adresse nur Text). */
-function KundenAdresse({
-	kunde,
-}: {
-	kunde: { plz: string; adresse: string } | null;
-}) {
-	const text = kundeAdresse(kunde);
-	const karte = kunde ? googleMapsUrl(kunde) : undefined;
-
-	if (!karte) return <>{text}</>;
-
-	return (
-		<a
-			href={karte}
-			target="_blank"
-			rel="noreferrer"
-			className="underline underline-offset-2"
-		>
-			{text}
-		</a>
-	);
-}
-
 /** Gemeinsame Reservierungszeilen der Übersichts-Dialoge (Verkauf und Reservierung). */
 export function ReservierungAngaben({
 	kunde,
@@ -47,7 +24,18 @@ export function ReservierungAngaben({
 			<dd>{kunde?.name ?? "–"}</dd>
 			<dt className="text-muted-foreground">Adresse</dt>
 			<dd>
-				<KundenAdresse kunde={kunde} />
+				{kunde?.adresse ? (
+					<a
+						href={googleMapsUrl(kunde)}
+						target="_blank"
+						rel="noreferrer"
+						className="underline underline-offset-2"
+					>
+						{kundeAdresse(kunde)}
+					</a>
+				) : (
+					kundeAdresse(kunde)
+				)}
 			</dd>
 			<dt className="text-muted-foreground">Versandart</dt>
 			<dd>{versandLabel(versandart)}</dd>

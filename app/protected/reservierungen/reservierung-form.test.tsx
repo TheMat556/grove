@@ -204,18 +204,22 @@ describe("ReservierungForm", () => {
 		);
 	});
 
-	it("validiert das Datum sofort nach der Auswahl (ohne Absenden)", () => {
+	it("blendet einen Server-Fehler zum Datum aus, sobald ein Datum gewählt ist", async () => {
+		vi.mocked(createReservierungAction).mockResolvedValueOnce({
+			errors: { geplantes_datum: ["Ungültiges Datum"] },
+		} as never);
 		renderForm();
 
-		// Der Kalender-Mock liefert ein Datum in der Vergangenheit.
+		submitForm();
+		await waitFor(() => {
+			expect(screen.getByText("Ungültiges Datum")).toBeInTheDocument();
+		});
+
 		fireEvent.click(screen.getByRole("button", { name: "Pick date" }));
 
-		expect(
-			screen.getByText(
-				"Geplantes Datum darf nicht in der Vergangenheit liegen.",
-			),
-		).toBeInTheDocument();
-		expect(createReservierungAction).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(screen.queryByText("Ungültiges Datum")).not.toBeInTheDocument();
+		});
 	});
 
 	it("erlaubt beim Bearbeiten weiterhin vergangene Termine", () => {

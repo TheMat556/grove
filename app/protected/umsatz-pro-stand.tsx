@@ -11,22 +11,23 @@ import {
 } from "@/components/ui/card";
 import {
 	UMSATZ_ZEITRAEUME,
-	type UmsatzProStandZeile,
+	type UmsatzVerkauf,
 	type UmsatzZeitraum,
+	umsatzProStand,
 } from "@/lib/umsatz";
 import { cn } from "@/lib/utils";
 import { selectClasses } from "./_crud/select-classes";
 import { euroFormat } from "./verkaeufe/format";
 
 type UmsatzProStandCardProps = {
-	/** Umsatz je Stand, für jeden Zeitraum vorberechnet (Server-Aggregation). */
-	daten: Record<UmsatzZeitraum, UmsatzProStandZeile[]>;
+	/** Verkäufe der Saison; aggregiert wird bei jeder Filterwahl im Client. */
+	verkaeufe: UmsatzVerkauf[];
 };
 
 /** Umsatz je Stand mit Zeitraum-Filter (Heute, 3 Tage, Woche, Saison). */
-export function UmsatzProStandCard({ daten }: UmsatzProStandCardProps) {
+export function UmsatzProStandCard({ verkaeufe }: UmsatzProStandCardProps) {
 	const [zeitraum, setZeitraum] = useState<UmsatzZeitraum>("woche");
-	const zeilen = daten[zeitraum];
+	const zeilen = umsatzProStand(verkaeufe, zeitraum);
 	const gesamt = zeilen.reduce((summe, zeile) => summe + zeile.umsatz, 0);
 	const max = Math.max(...zeilen.map((zeile) => zeile.umsatz), 1);
 

@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 /** Uhrzeit als HH:MM, wie sie das Formular (input type="time") liefert. */
-const uhrzeitSchema = z
-	.string()
-	.regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Uhrzeit im Format HH:MM angeben.");
+const uhrzeitSchema = z.iso.time({ error: "Uhrzeit im Format HH:MM angeben." });
 
 /**
  * Änderbare Felder der globalen Einstellungen. Die SMS-Erinnerung für

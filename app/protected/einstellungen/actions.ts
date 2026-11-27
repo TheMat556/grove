@@ -6,13 +6,11 @@ import { getCurrentProfilId } from "@/lib/data/session";
 import { einstellungenUpdateSchema } from "@/lib/schemas/einstellungen";
 import type { EntityFormState } from "../_crud/entity-actions";
 
-export type EinstellungenFormState = EntityFormState;
-
 /** Speichert die globalen Einstellungen (SMS-Vorlaufzeit und -Uhrzeit). */
 export async function updateEinstellungenAction(
-	_prevState: EinstellungenFormState,
+	_prevState: EntityFormState,
 	formData: FormData,
-): Promise<EinstellungenFormState> {
+): Promise<EntityFormState> {
 	const parsed = einstellungenUpdateSchema.safeParse({
 		sms_aktiv: formData.get("sms_aktiv") === "on",
 		sms_vorlauf_tage: formData.get("sms_vorlauf_tage"),
